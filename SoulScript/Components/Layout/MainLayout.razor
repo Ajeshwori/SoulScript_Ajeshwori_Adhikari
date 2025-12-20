@@ -1,0 +1,106 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider @ref="_mudThemeProvider"
+                  Theme="@MyCustomTheme"
+                  IsDarkMode="@_isDarkMode" />
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@DrawerToggle" />
+        My Application
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Persistent"
+               Elevation="1">
+        <NavMenu _isDarkMode="_isDarkMode"
+                 ToggleDarkMode="ToggleDarkMode" />
+
+    </MudDrawer>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+
+    private bool _drawerOpen = true;
+    private bool _isDarkMode;
+    private MudThemeProvider? _mudThemeProvider;
+
+    private MudTheme MyCustomTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = Colors.Blue.Darken2,
+            Secondary = Colors.Green.Accent4
+        },
+
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten3
+        },
+
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Roboto", "Helvetica", "Arial", "sans-serif" }
+            },
+
+            H1 = new H1Typography()
+            {
+                FontFamily = new[] { "Roboto", "Helvetica", "Arial", "sans-serif" },
+                FontSize = "16px",
+                FontWeight = "400",
+                LineHeight = "1.5",
+                LetterSpacing = "0.00938em"
+            }
+        },
+
+        LayoutProperties = new LayoutProperties()
+        {
+            DrawerWidthLeft = "268px",
+            DrawerWidthRight = "300px"
+        }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _mudThemeProvider is not null)
+        {
+            await _mudThemeProvider.WatchSystemDarkModeAsync(OnSystemDarkModeChange);
+            // _isDarkMode will be set by OnSystemDarkModeChange callback
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSystemDarkModeChange(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void ToggleDarkMode()
+    {
+        _isDarkMode = !_isDarkMode;
+    }
+
+}
