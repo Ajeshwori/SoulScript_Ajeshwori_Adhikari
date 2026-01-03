@@ -1,0 +1,29 @@
+﻿@using MudBlazor
+
+<MudPaper Class="pa-4 mb-3" Elevation="2">
+    <MudTextField T="string"
+                  Value="Title"
+                  ValueChanged="OnTitleChanged"
+                  Label="Title"
+                  Variant="Variant.Outlined"
+                  FullWidth="true"
+                  Placeholder="Enter title here..."
+                  Immediate="true"
+                  TextUpdateSuppression="false" />
+</MudPaper>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> TitleChanged { get; set; }
+
+    private async Task OnTitleChanged(string value)
+    {
+        if (Title == value)
+            return;
+
+        Title = value;
+
+        if (TitleChanged.HasDelegate)
+            await TitleChanged.InvokeAsync(value);
+    }
+}

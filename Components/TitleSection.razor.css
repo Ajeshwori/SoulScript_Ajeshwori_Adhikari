@@ -1,0 +1,52 @@
+﻿/* Title Section (theme-aware, no hard-coded colors) */
+
+.title-section {
+    background: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.title-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--mud-palette-text-primary);
+    margin-bottom: 12px;
+}
+
+.title-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 0;
+    outline: none;
+    font-size: 18px;
+    font-family: inherit;
+    color: var(--mud-palette-text-primary);
+    background: transparent;
+    box-sizing: border-box;
+}
+
+    .title-input::placeholder {
+        color: var(--mud-palette-text-secondary);
+        font-weight: 400;
+    }
+
+    /* Optional: focus ring that matches theme */
+    .title-input:focus {
+        outline: none;
+    }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .title-section {
+        padding: 20px;
+    }
+
+    .title-input {
+        font-size: 16px;
+        padding: 12px 0;
+    }
+}

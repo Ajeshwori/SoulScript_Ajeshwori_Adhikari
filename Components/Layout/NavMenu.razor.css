@@ -1,0 +1,8 @@
+.main-content {
+    padding: 16px;
+}
+.streak-compact {
+    border-radius: 16px;
+    background: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-lines-default);
+}

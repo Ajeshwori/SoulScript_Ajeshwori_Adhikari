@@ -1,0 +1,101 @@
+﻿@page "/entry/{DateText}"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Web
+@using Markdig
+@using MudBlazor
+@using SoulScript.Data
+@using SoulScript.Model
+@using SoulScript.Services
+
+
+<MudText Typo="Typo.h4" Class="mb-2">
+    Entry: @_date.ToString("MMM dd, yyyy")
+</MudText>
+
+@if (_isLoading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_invalidDate)
+{
+    <MudText Typo="Typo.body1">Invalid date.</MudText>
+    <MudButton Variant="Variant.Outlined" OnClick="@(() => Nav.NavigateTo("/calendar"))">Back</MudButton>
+}
+else if (_isFuture)
+{
+    <MudText Typo="Typo.body1">Future dates can’t be opened.</MudText>
+    <MudButton Variant="Variant.Outlined" OnClick="@(() => Nav.NavigateTo("/calendar"))">Back</MudButton>
+}
+else if (_entry is null && !_isCreating)
+{
+    <MudText Typo="Typo.body1">No entry for this date.</MudText>
+
+    <MudStack Row="true" Spacing="2" Class="mt-3">
+        <MudButton Variant="Variant.Outlined" OnClick="@(() => Nav.NavigateTo("/calendar"))">
+            Back
+        </MudButton>
+
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="CreateEntryForThisDay">
+            New entry
+        </MudButton>
+    </MudStack>
+}
+else
+{
+    <TitleSection Title="@EntryTitle" TitleChanged="v => EntryTitle = v" />
+    <EditToolbar OnCommandClicked="FormatText" />
+
+    <MudPaper Class="pa-4" Elevation="2">
+        <textarea id="editor"
+                  class="editor-textarea"
+                  @oninput="OnEditorInput"
+                  @onkeydown="OnEditorKeyDown"></textarea>
+    </MudPaper>
+
+    <MudDivider Class="my-3" />
+
+    <MudText Typo="Typo.subtitle2">Preview</MudText>
+    <MudPaper Class="pa-4" Elevation="1">
+        @((MarkupString)Markdown.ToHtml(EntryContent ?? string.Empty, _pipeline))
+    </MudPaper>
+
+    <MoodSection Moods="@Moods"
+                 PrimaryFeeling="@PrimaryFeeling"
+                 PrimaryFeelingChanged="v => PrimaryFeeling = v"
+                 SecondaryFeelings="@SecondaryFeelings"
+                 SecondaryFeelingsChanged="v => SecondaryFeelings = v" />
+
+    <MudGrid Class="mt-4">
+        <MudItem xs="12" md="4">
+            <CategorySection Category="@Category" CategoryChanged="v => Category = v" />
+        </MudItem>
+        <MudItem xs="12" md="8">
+            <TagSection Tags="@Tags" TagsChanged="v => Tags = v" PredefinedTags="@PredefinedTags" />
+        </MudItem>
+    </MudGrid>
+
+    <MudStack Row="true" Class="mt-4" Spacing="2" Justify="Justify.FlexEnd">
+        <MudButton Variant="Variant.Outlined" OnClick="@(() => Nav.NavigateTo("/calendar"))">
+            Back
+        </MudButton>
+
+        @if (_entry is not null)
+        {
+            <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="DeleteEntry">
+                Delete
+            </MudButton>
+        }
+
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="SaveEntry"
+                   StartIcon="@Icons.Material.Filled.Save">
+            Save
+        </MudButton>
+    </MudStack>
+}
+
+

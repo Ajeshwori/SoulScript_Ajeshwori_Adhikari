@@ -1,0 +1,41 @@
+﻿.category-card {
+    padding: 0.9rem 1.1rem;
+    margin-top: 0.5rem;
+    border-radius: 0.75rem;
+   
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-width: 230px;
+    max-width: 260px;
+    background-color: aliceblue;
+}
+
+@media (prefers-color-scheme: dark) {
+    .category-card {
+        background-color: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+}
+
+.category-card h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.category-card .select {
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .category-card .select {
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+}

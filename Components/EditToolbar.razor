@@ -1,0 +1,45 @@
+﻿@using MudBlazor
+@inherits ComponentBase
+
+@using MudBlazor
+
+<MudPaper Class="pa-2 mb-3" Elevation="0"
+          Style="background-color: #FFF9F0; border-radius: 12px; color: #333333;">
+    <MudButtonGroup Variant="Variant.Text" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.FormatBold"
+                       OnClick="@(() => Click("bold"))"
+                       Title="Bold" />
+        <MudIconButton Icon="@Icons.Material.Filled.FormatItalic"
+                       OnClick="@(() => Click("italic"))"
+                       Title="Italic" />
+        <MudIconButton Icon="@Icons.Material.Filled.FormatUnderlined"
+                       OnClick="@(() => Click("underline"))"
+                       Title="Underline" />
+
+        <MudDivider Vertical="true" FlexItem="true" />
+
+        <MudButton OnClick="@(() => Click("h1"))">H1</MudButton>
+        <MudButton OnClick="@(() => Click("h2"))">H2</MudButton>
+
+        <MudDivider Vertical="true" FlexItem="true" />
+
+        <MudIconButton Icon="@Icons.Material.Filled.FormatListBulleted"
+                       OnClick="@(() => Click("ul"))"
+                       Title="Bullets" />
+        <MudIconButton Icon="@Icons.Material.Filled.FormatListNumbered"
+                       OnClick="@(() => Click("ol"))"
+                       Title="Numbered" />
+
+        <MudDivider Vertical="true" FlexItem="true" />
+
+        <MudIconButton Icon="@Icons.Material.Filled.Link"
+                       OnClick="@(() => Click("link"))"
+                       Title="Link" />
+    </MudButtonGroup>
+</MudPaper>
+
+@code {
+    [Parameter] public EventCallback<string> OnCommandClicked { get; set; }
+
+    private Task Click(string cmd) => OnCommandClicked.InvokeAsync(cmd);
+}

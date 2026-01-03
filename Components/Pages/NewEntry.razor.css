@@ -1,0 +1,57 @@
+﻿.editor-card,
+.preview-card {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 12px;
+    background: var(--mud-palette-surface);
+}
+
+.preview-card {
+    color: var(--mud-palette-text-primary);
+}
+
+    /* Optional: make markdown preview headings/links theme-friendly */
+    .preview-card :is(h1,h2,h3,h4,h5,h6) {
+        color: var(--mud-palette-text-primary);
+    }
+
+    .preview-card a {
+        color: var(--mud-palette-primary);
+    }
+
+
+/* Note: works for contenteditable divs, not textarea */
+.editor-with-placeholder:empty::before {
+    content: attr(data-placeholder);
+    pointer-events: none;
+    color: var(--mud-palette-text-secondary);
+}
+
+.editor-textarea {
+    width: 100%;
+    min-height: 260px;
+    padding: 16px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 12px;
+    background: var(--mud-palette-surface);
+    color: var(--mud-palette-text-primary);
+    outline: none;
+}
+.editor-textarea {
+    background: var(--mud-palette-surface) !important;
+    color: var(--mud-palette-text-primary) !important;
+}
+
+  
+.catag {
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) minmax(320px, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+    .catag {
+        grid-template-columns: 1fr;
+    }
+}

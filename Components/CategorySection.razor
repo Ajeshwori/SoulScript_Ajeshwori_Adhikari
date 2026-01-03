@@ -1,0 +1,56 @@
+﻿@using MudBlazor
+@inherits ComponentBase
+
+<MudPaper Class="category-card pa-4" Elevation="0" Style=" border-radius: 12px;">
+    <MudText Typo="Typo.subtitle1">Category</MudText>
+
+    <MudAutocomplete T="string"
+                     Value="@Category"
+                     ValueChanged="OnCategoryChanged"
+                     Label="Search or type category"
+                     Variant="Variant.Outlined"
+                     Dense="true"
+                     Clearable="true"
+                     ResetValueOnEmptyText="false"
+                     CoerceText="true"
+                     SearchFunc="SearchCategories" />
+</MudPaper>
+
+@code {
+    [Parameter] public string Category { get; set; } = "Personal";
+    [Parameter] public EventCallback<string> CategoryChanged { get; set; }
+
+    // Prebuilt list (you can also pass this in as a Parameter if you want)
+    private readonly List<string> Categories = new()
+    {
+        "Personal","Work","Career","Studies","Family","Friends","Relationships","Health","Fitness",
+        "Personal Growth","Self-care","Hobbies","Travel","Nature","Finance","Spirituality",
+        "Birthday","Holiday","Vacation","Celebration","Exercise","Reading","Writing","Cooking",
+        "Meditation","Yoga","Music","Shopping","Parenting","Projects","Planning","Reflection"
+    };
+
+    private Task<IEnumerable<string>> SearchCategories(string value, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(Categories.AsEnumerable());
+
+        var v = value.Trim();
+        var result = Categories.Where(x => x.Contains(v, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(result);
+    }
+
+    private async Task OnCategoryChanged(string value)
+    {
+        Category = (value ?? "").Trim();
+
+        // Optional: keep the list growing with custom values
+        if (!string.IsNullOrWhiteSpace(Category) &&
+            !Categories.Contains(Category, StringComparer.OrdinalIgnoreCase))
+        {
+            Categories.Add(Category);
+        }
+
+        if (CategoryChanged.HasDelegate)
+            await CategoryChanged.InvokeAsync(Category);
+    }
+}

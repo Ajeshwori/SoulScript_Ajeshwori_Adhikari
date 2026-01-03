@@ -1,0 +1,131 @@
+@page "/settings"
+@using MudBlazor
+@using SoulScript.Services
+
+
+<MudText Typo="Typo.h4" Class="mb-4">Settings</MudText>
+
+<!-- Appearance -->
+<MudPaper Class="pa-4 mb-4" Elevation="1" Style="border-radius: 12px;">
+    <div class="d-flex align-center mb-3">
+        <MudIcon Icon="@Icons.Material.Filled.Palette"
+                 Style="color: #66BB6A; font-size: 24px; margin-right: 12px;" />
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight: 600; margin: 0;">Appearance</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575; margin: 0;">Customize how your journal looks.</MudText>
+        </div>
+    </div>
+
+    <MudDivider Class="my-3" />
+
+    <div class="d-flex justify-space-between align-center">
+        <div class="flex-grow-1">
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">Theme</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575;">Choose between light and dark mode</MudText>
+        </div>
+
+      <MudButton Variant="Variant.Outlined"
+           Color="Color.Success"
+           StartIcon="@(Theme.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+           OnClick="ToggleTheme">
+    @(Theme.IsDarkMode ? "Light Mode" : "Dark Mode")
+</MudButton>
+
+    </div>
+</MudPaper>
+
+<!-- Security -->
+<MudPaper Class="pa-4 mb-4" Elevation="1" Style="border-radius: 12px;">
+    <div class="d-flex align-center mb-3">
+        <MudIcon Icon="@Icons.Material.Filled.Security"
+                 Style="color: #66BB6A; font-size: 24px; margin-right: 12px;" />
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight: 600; margin: 0;">Security</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575; margin: 0;">Protect your journal entries.</MudText>
+        </div>
+    </div>
+
+    <MudDivider Class="my-3" />
+
+    <div class="d-flex justify-space-between align-center mb-4">
+        <div class="flex-grow-1">
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">Change PIN</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575;">Update your journal lock PIN.</MudText>
+        </div>
+
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   OnClick="OpenChangePinDialog">
+            Change
+        </MudButton>
+    </div>
+
+    <div class="d-flex justify-space-between align-center">
+        <div class="flex-grow-1">
+            <MudText Typo="Typo.body1" Style="font-weight: 500;">Auto-lock</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575;">Lock journal after 5 minutes of inactivity.</MudText>
+        </div>
+
+       <MudSwitch T="bool"
+           @bind-Value="_autoLockEnabled"
+           @bind-Value:after="OnAutoLockAfter"
+           Color="Color.Success" />
+
+    </div>
+</MudPaper>
+
+<!-- Export -->
+<MudPaper Class="pa-4 mb-4" Elevation="1" Style="border-radius: 12px;">
+    <div class="d-flex align-center mb-3">
+        <MudIcon Icon="@Icons.Material.Filled.Download"
+                 Style="color: #66BB6A; font-size: 24px; margin-right: 12px;" />
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight: 600; margin: 0;">Export Data</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575; margin: 0;">Download your journal entries.</MudText>
+        </div>
+    </div>
+
+    <MudDivider Class="my-3" />
+
+    <div class="d-flex justify-space-around mb-4" style="gap: 24px;">
+        <div class="text-center">
+            <MudText Typo="Typo.h5" Style="font-weight: 700; color: #424242;">@_totalEntries</MudText>
+            <MudText Typo="Typo.body2" Style="color: #757575;">Total Entries</MudText>
+        </div>
+        <div class="text-center">
+            <MudText Typo="Typo.h5" Style="font-weight: 700; color: #424242;">@_totalWords</MudText>
+            <MudText Typo="Typo.body2" Style="color: #757575;">Total Words</MudText>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <MudText Typo="Typo.body2" Class="mb-2" Style="font-weight: 500;">Select Date Range</MudText>
+
+        <MudDateRangePicker @bind-DateRange="_exportDateRange"
+                            Label="Export entries from date range"
+                            Class="mt-2" />
+
+        <MudText Typo="Typo.caption" Class="mt-1" Style="color: #757575;">
+            Leave empty to export all entries
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Success"
+               FullWidth="true"
+               StartIcon="@Icons.Material.Filled.PictureAsPdf"
+               OnClick="ExportAsPdf"
+               Disabled="@_isExporting">
+        @(_isExporting ? "Exporting..." : "Export as PDF")
+    </MudButton>
+
+    <MudText Typo="Typo.caption" Class="mt-2 text-center" Style="color: #757575;">
+        Your journal entries will be downloaded as a PDF file.
+    </MudText>
+</MudPaper>
+
+<div class="text-center mt-6" style="color: #9E9E9E;">
+    <MudText Typo="Typo.body2">SoulScript</MudText>
+    <MudText Typo="Typo.caption">Version 1.0</MudText>
+    <MudText Typo="Typo.caption">A secure personal journaling application</MudText>
+</div>

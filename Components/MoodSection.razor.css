@@ -1,0 +1,82 @@
+﻿.mood-primary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.mood-primary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 12px;
+    background-color: var(--mud-palette-surface);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--mud-palette-text-primary) 10%, transparent);
+}
+
+    .mood-primary-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px color-mix(in srgb, var(--mud-palette-text-primary) 16%, transparent);
+    }
+
+    .mood-primary-item.selected {
+        border-color: currentColor; /* still uses category color */
+        background-color: var(--mud-palette-surface);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--mud-palette-text-primary) 18%, transparent);
+    }
+
+.mood-primary-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.mood-primary-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--mud-palette-text-secondary);
+    text-align: center;
+}
+
+/* Category Colors (theme-aligned) */
+.cat-positive {
+    color: var(--mud-palette-warning);
+}
+
+.cat-neutral {
+    color: var(--mud-palette-secondary);
+}
+
+.cat-negative {
+    color: var(--mud-palette-error);
+}
+
+/* Chips styling overrides */
+.mood-secondary-chips .mud-chip {
+    font-weight: 500;
+}
+
+.chip-selected.cat-positive {
+    background-color: var(--mud-palette-warning) !important;
+    color: var(--mud-palette-warning-text) !important;
+}
+
+.chip-selected.cat-neutral {
+    background-color: var(--mud-palette-secondary) !important;
+    color: var(--mud-palette-secondary-text) !important;
+}
+
+.chip-selected.cat-negative {
+    background-color: var(--mud-palette-error) !important;
+    color: var(--mud-palette-error-text) !important;
+}
+
+.mood-chip-emoji {
+    margin-right: 6px;
+    font-size: 1.1em;
+}

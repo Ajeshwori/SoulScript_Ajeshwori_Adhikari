@@ -1,0 +1,4 @@
+﻿.edit-toolbar {
+    background: color-mix(in srgb, var(--mud-palette-surface) 80%, transparent);
+    border: 1px solid var(--mud-palette-lines-default);
+}

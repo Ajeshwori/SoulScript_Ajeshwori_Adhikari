@@ -1,0 +1,118 @@
+﻿@using SoulScript.Model
+@using MudBlazor
+@inherits ComponentBase
+
+<MudPaper Class="mood-card pa-4" Elevation="0" Style=" border-radius: 12px; ">
+    <MudText Typo="Typo.h6" Class="mb-3">How are you feeling?</MudText>
+
+    <!-- PRIMARY (big cards) -->
+    <MudText Typo="Typo.subtitle2">How are you feeling? (Primary)</MudText>
+
+    <div class="mood-primary-grid">
+        @foreach (var mood in Moods)
+        {
+            var isPrimary = PrimaryFeeling == mood.MoodName;
+
+            <div class="mood-primary-item @CategoryClass(mood.Category) @(isPrimary ? "selected" : "")"
+                 @onclick="() => ToggleMood(mood.MoodName)">
+                <div class="mood-primary-emoji">@mood.EmojiIcon</div>
+                <div class="mood-primary-name">@mood.MoodName</div>
+            </div>
+        }
+    </div>
+
+    <!-- SECONDARY (chips) -->
+    <MudText Typo="Typo.subtitle2" Class="mt-4">Any other feelings? </MudText>
+
+    <MudChipSet T="string" MultiSelection="true" Class="mood-secondary-chips">
+        @foreach (var mood in Moods)
+        {
+            var isSecondary = SecondaryFeelings.Contains(mood.MoodName);
+            var isPrimary = PrimaryFeeling == mood.MoodName;
+
+            <MudChip T="string"
+                     Value="@mood.MoodName"
+                     Disabled="@isPrimary"
+                     Class="@SecondaryChipClass(mood.Category, isSecondary)"
+                     Variant="@(isSecondary ? Variant.Filled : Variant.Outlined)"
+                     OnClick="() => ToggleMood(mood.MoodName)">
+                <span class="mood-chip-emoji">@mood.EmojiIcon</span>
+                @mood.MoodName
+            </MudChip>
+        }
+    </MudChipSet>
+</MudPaper>
+
+@code {
+    [Parameter] public List<Mood> Moods { get; set; } = new();
+
+    // Oldest selected = Primary
+    [Parameter] public string PrimaryFeeling { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> PrimaryFeelingChanged { get; set; }
+
+    // Remaining selected (up to 2) = Secondary (ordered)
+    [Parameter] public List<string> SecondaryFeelings { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SecondaryFeelingsChanged { get; set; }
+
+    private List<string> SelectedOrdered
+    {
+        get
+        {
+            var list = new List<string>();
+            if (!string.IsNullOrWhiteSpace(PrimaryFeeling))
+                list.Add(PrimaryFeeling);
+
+            list.AddRange(SecondaryFeelings
+                .Where(s => !string.IsNullOrWhiteSpace(s) && s != PrimaryFeeling));
+
+            return list;
+        }
+    }
+
+    private async Task ToggleMood(string moodName)
+    {
+        var selected = SelectedOrdered;
+
+        // Toggle off
+        if (selected.Contains(moodName))
+        {
+            selected.Remove(moodName);
+        }
+        else
+        {
+            // Toggle on (append)
+            selected.Add(moodName);
+
+            // Keep only last 3 selected (sliding window)
+            while (selected.Count > 3)
+                selected.RemoveAt(0);
+        }
+
+        // Oldest is primary, remaining are secondary
+        var newPrimary = selected.Count > 0 ? selected[0] : string.Empty;
+        var newSecondary = selected.Skip(1).Take(2).ToList();
+
+        PrimaryFeeling = newPrimary;
+        SecondaryFeelings = newSecondary;
+
+        if (PrimaryFeelingChanged.HasDelegate)
+            await PrimaryFeelingChanged.InvokeAsync(PrimaryFeeling);
+
+        if (SecondaryFeelingsChanged.HasDelegate)
+            await SecondaryFeelingsChanged.InvokeAsync(new List<string>(SecondaryFeelings));
+    }
+
+    private static string CategoryClass(MoodCategory category) => category switch
+    {
+        MoodCategory.Positive => "cat-positive",
+        MoodCategory.Neutral => "cat-neutral",
+        MoodCategory.Negative => "cat-negative",
+        _ => ""
+    };
+
+    private static string SecondaryChipClass(MoodCategory category, bool selected)
+    {
+        var cat = CategoryClass(category);
+        return selected ? $"chip-selected {cat}" : $"chip-unselected {cat}";
+    }
+}

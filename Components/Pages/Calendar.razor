@@ -1,0 +1,117 @@
+﻿@page "/calendar"
+@using Microsoft.EntityFrameworkCore
+@using SoulScript.Data
+@using SoulScript.Model
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+
+<MudText Typo="Typo.h4" Class="mb-2">Calendar</MudText>
+<MudText Typo="Typo.body2" Class="mb-4">Tap a day to open its entry.</MudText>
+
+<MudPaper Class="pa-3" Elevation="1">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-3">
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="@(() => ChangeMonth(-1))" />
+        <MudText Typo="Typo.h6">@_monthStart.ToString("MMMM yyyy")</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="@(() => ChangeMonth(1))" />
+    </MudStack>
+
+    <div class="cal-grid cal-header">
+        @foreach (var d in _dowLabels)
+        {
+            <div class="cal-dow">@d</div>
+        }
+    </div>
+
+    <div class="cal-grid">
+        @foreach (var cell in _cells)
+        {
+            if (cell.IsBlank)
+            {
+                <div class="cal-cell cal-blank"></div>
+            }
+            else
+            {
+                var day = cell.Day!.Value.Date;
+                var hasEntry = _entryDates.Contains(day);
+                var isToday = day == DateTime.Today;
+                var isFuture = day > DateTime.Today;
+
+                // ---> FUTURE DATES DISABLED HERE
+                if (isFuture)
+                {
+                    <div class="cal-cell cal-day disabled">
+                        <div class="cal-num">@day.Day</div>
+                    </div>
+                }
+                else
+                {
+                    <button class="cal-cell cal-day @(hasEntry ? "has-entry" : "") @(isToday ? "today" : "")"
+                            @onclick="@(() => OpenDay(day))">
+                        <div class="cal-num">@day.Day</div>
+                    </button>
+                }
+            }
+        }
+    </div>
+</MudPaper>
+
+@code {
+    private readonly string[] _dowLabels = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    private DateTime _monthStart = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private HashSet<DateTime> _entryDates = new();
+    private List<CalendarCell> _cells = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMonthAsync();
+    }
+
+    private async Task LoadMonthAsync()
+    {
+        var start = new DateTime(_monthStart.Year, _monthStart.Month, 1);
+        var endExclusive = start.AddMonths(1);
+
+        _entryDates = (await Db.JournalEntries
+                .AsNoTracking()
+                .Where(e => !e.IsDeleted && e.EntryDate >= start && e.EntryDate < endExclusive)
+                .Select(e => e.EntryDate.Date)
+                .ToListAsync())
+            .ToHashSet();
+
+        BuildGrid();
+    }
+
+    private void BuildGrid()
+    {
+        _cells.Clear();
+        var firstDow = (int)_monthStart.DayOfWeek;
+
+        for (int i = 0; i < firstDow; i++)
+            _cells.Add(CalendarCell.Blank());
+
+        var daysInMonth = DateTime.DaysInMonth(_monthStart.Year, _monthStart.Month);
+        for (int day = 1; day <= daysInMonth; day++)
+            _cells.Add(CalendarCell.ForDay(new DateTime(_monthStart.Year, _monthStart.Month, day)));
+
+        while (_cells.Count % 7 != 0)
+            _cells.Add(CalendarCell.Blank());
+    }
+
+    private async Task ChangeMonth(int delta)
+    {
+        _monthStart = _monthStart.AddMonths(delta);
+        await LoadMonthAsync();
+    }
+
+    private void OpenDay(DateTime day)
+    {
+        Nav.NavigateTo($"/entry/{day:yyyy-MM-dd}");
+    }
+
+    private record CalendarCell(bool IsBlank, DateTime? Day)
+    {
+        public static CalendarCell Blank() => new(true, null);
+        public static CalendarCell ForDay(DateTime day) => new(false, day);
+    }
+}

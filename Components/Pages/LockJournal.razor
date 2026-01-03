@@ -1,0 +1,72 @@
+﻿@page "/lock-journal"
+
+<div class="d-flex justify-center align-center" style="height: 80vh;">
+    <MudPaper Class="pa-8 d-flex flex-column align-center"
+              Elevation="0"
+              Style="width: 320px; border-radius: 20px;">
+
+        <MudIcon Icon="@(_hasPin? Icons.Material.Filled.Lock : Icons.Material.Filled.LockOpen)"
+                 Size="Size.Large"
+                 Color="Color.Primary"
+                 Class="mb-4"
+                 Style="font-size: 3rem;" />
+
+        <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight: 700;">
+            @(_hasPin ? "Enter PIN" : "Setup PIN")
+        </MudText>
+
+        <MudText Typo="Typo.body2" Class="mud-text-secondary mb-6 text-center">
+            @(_hasPin
+                        ? "Enter your 4-digit PIN to access your journal."
+                        : "Create a 4-digit PIN to secure your entries.")
+        </MudText>
+
+        <div class="d-flex justify-center gap-3 mb-6">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div style="@($"width: 12px; height: 12px; border-radius: 50%; background-color: {(_pinInput.Length > i ? "var(--mud-palette-primary)" : "#e0e0e0")}; transition: background-color 0.2s;")"></div>
+            }
+        </div>
+
+        <MudGrid Spacing="2" Justify="Justify.Center" Class="mb-2">
+            @for (int i = 1; i <= 9; i++)
+            {
+                var num = i;
+                <MudItem xs="4" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Text"
+                               OnClick="@(() => AppendPin(num.ToString()))"
+                               Class="pin-btn">
+                        @num
+                    </MudButton>
+                </MudItem>
+            }
+
+            <MudItem xs="4" Class="d-flex justify-center">
+                <!-- empty -->
+            </MudItem>
+
+            <MudItem xs="4" Class="d-flex justify-center">
+                <MudButton Variant="Variant.Text"
+                           OnClick="@(() => AppendPin("0"))"
+                           Class="pin-btn">
+                    0
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="4" Class="d-flex justify-center">
+                <MudIconButton Icon="@Icons.Material.Filled.Backspace"
+                               OnClick="Backspace"
+                               Color="Color.Default" />
+            </MudItem>
+        </MudGrid>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error" Class="mt-2">
+                @_error
+            </MudText>
+        }
+    </MudPaper>
+</div>
+
+

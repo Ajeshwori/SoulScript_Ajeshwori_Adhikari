@@ -1,0 +1,94 @@
+﻿/* Layout spacing */
+.ss-search-page {
+    padding: 8px 16px;
+}
+
+.ss-title {
+    margin: 0 0 4px 0;
+}
+
+.ss-subtitle {
+    margin: 0 0 14px 0;
+    opacity: .75;
+}
+
+/* Grid like your React (1 col, then 2 col on wide) */
+.ss-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 12px;
+}
+
+@media (min-width: 1024px) {
+    .ss-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Shared “card/block” styling */
+.ss-block {
+    border: 1px solid rgba(0,0,0,.10);
+    border-radius: 16px;
+    background: var(--mud-palette-surface);
+    box-shadow: 0 10px 26px rgba(0,0,0,.06);
+}
+
+.ss-card {
+    padding: 16px;
+}
+
+/* Searchbar block */
+.ss-searchbar {
+    padding: 10px 12px;
+}
+
+/* MudTextField internal styling */
+.ss-search-page .ss-searchbar ::deep .mud-input-control {
+    margin: 0;
+}
+
+.ss-search-page .ss-searchbar ::deep .mud-input-slot {
+    border-radius: 14px;
+    background: rgba(0,0,0,.04);
+}
+
+.ss-search-page .ss-searchbar ::deep .mud-input-outlined-border {
+    border-color: transparent !important;
+}
+
+.ss-search-page .ss-searchbar ::deep input.mud-input-root {
+    padding: 14px 44px;
+    font-size: .95rem;
+}
+
+/* Chips -> “pill buttons” */
+.ss-search-page ::deep .mud-chip {
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+    .ss-search-page ::deep .mud-chip:not(.mud-chip-selected) {
+        background: rgba(0,0,0,.06);
+    }
+
+    .ss-search-page ::deep .mud-chip.mud-chip-selected {
+        background: var(--mud-palette-primary);
+        color: var(--mud-palette-primary-text);
+    }
+
+/* Buttons row */
+.ss-actions {
+    display: flex;
+    gap: 20px;
+    margin: 14px 0;
+}
+
+/* Entry cards */
+.ss-entry {
+    padding: 14px 16px;
+    margin-bottom: 20px;
+}
+.ss-tagscard {
+    margin-top: 18px; /* adjust: 12 / 16 / 24 */
+}

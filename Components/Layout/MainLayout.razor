@@ -1,0 +1,107 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+@using SoulScript.Services
+@using Microsoft.AspNetCore.Components.Routing
+
+@inject ThemeService Theme
+@inject SecurityService Security
+@inject NavigationManager Nav
+
+<MudThemeProvider @ref="_mudThemeProvider"
+                  Theme="@MyCustomTheme"
+                  IsDarkMode="@Theme.IsDarkMode" />
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="DrawerToggle" />
+        SoulScript
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Persistent"
+               Elevation="1">
+        <NavMenu _isDarkMode="Theme.IsDarkMode"
+                 ToggleDarkMode="ToggleDarkMode" />
+    </MudDrawer>
+
+    <MudMainContent Class="main-content">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code
+{
+    private bool _drawerOpen = true;
+    private MudThemeProvider? _mudThemeProvider;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Theme.OnChange += StateHasChanged;
+        Nav.LocationChanged += OnLocationChanged;
+        await CheckSecurity();
+    }
+
+    public void Dispose()
+    {
+        Theme.OnChange -= StateHasChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await CheckSecurity();
+    }
+
+    private async Task CheckSecurity()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri);
+
+        if (path.StartsWith("lock-journal", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        bool locked = await Security.IsLockEnabledAsync();
+
+        if (locked && !Security.IsAuthenticated)
+            Nav.NavigateTo("/lock-journal", replace: true);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _mudThemeProvider is not null)
+            await _mudThemeProvider.WatchSystemDarkModeAsync(OnSystemDarkModeChange);
+    }
+
+    private Task OnSystemDarkModeChange(bool newValue)
+    {
+        Theme.Set(newValue);
+        return Task.CompletedTask;
+    }
+
+    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
+    private void ToggleDarkMode() => Theme.Toggle();
+
+    private MudTheme MyCustomTheme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = Colors.Blue.Darken2,
+            Secondary = Colors.Green.Accent4
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten3
+        },
+        LayoutProperties = new LayoutProperties()
+        {
+            DrawerWidthLeft = "268px",
+            DrawerWidthRight = "300px"
+        }
+    };
+}

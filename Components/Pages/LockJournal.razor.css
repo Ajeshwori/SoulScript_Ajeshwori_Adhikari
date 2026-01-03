@@ -1,0 +1,15 @@
+.pin-btn {
+    font-size: 1.5rem !important;
+    font-weight: 500 !important;
+    width: 64px;
+    height: 64px;
+    border-radius: 50% !important;
+}
+
+.pin-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.gap-3 {
+    gap: 12px;
+}

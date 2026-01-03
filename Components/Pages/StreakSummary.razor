@@ -1,0 +1,100 @@
+﻿@using SoulScript.Model
+@using MudBlazor
+
+<MudGrid Spacing="3" Class="@Class">
+
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
+            <div class="d-flex justify-space-between align-start">
+                <div class="stat-icon-bg">
+                    <MudIcon Icon="@Icons.Material.Outlined.LocalFireDepartment" Class="stat-icon" />
+                </div>
+            </div>
+            <div class="mt-4">
+                <MudText Typo="Typo.h4" Style="font-weight:700;">@CurrentStreak</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Current Streak</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">days in a row</MudText>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
+            <div class="d-flex justify-space-between align-start">
+                <div class="stat-icon-bg">
+                    <MudIcon Icon="@Icons.Material.Outlined.EventBusy" Class="stat-icon" />
+                </div>
+            </div>
+            <div class="mt-4">
+                <MudText Typo="Typo.h4" Style="font-weight:700;">@MissedDaysCount</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Missed days</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">since first entry</MudText>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
+            <div class="d-flex justify-space-between align-start">
+                <div class="stat-icon-bg">
+                    <MudIcon Icon="@Icons.Material.Outlined.EmojiEvents" Class="stat-icon" />
+                </div>
+            </div>
+            <div class="mt-4">
+                <MudText Typo="Typo.h4" Style="font-weight:700;">@LongestStreak</MudText>
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">Longest Streak</MudText>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">personal best</MudText>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@if (ShowMissedDates)
+{
+    <MudPaper Class="pa-6 rounded-xl mb-8" Elevation="0">
+        <MudText Typo="Typo.h6" Style="font-weight:600;">Missed dates</MudText>
+
+        @if (MissedDays.Any())
+        {
+            <MudStack Row="true" Spacing="1" Class="mt-3" Style="flex-wrap:wrap;">
+                @foreach (var d in MissedDays.Take(MaxMissedChips))
+                {
+                    <MudChip T="string" Variant="Variant.Outlined" Color="Color.Default">
+                        @d
+                    </MudChip>
+                }
+                @if (MissedDays.Count > MaxMissedChips)
+                {
+                    <MudChip T="string" Variant="Variant.Outlined" Color="Color.Default">
+                        +@(MissedDays.Count - MaxMissedChips) more
+                    </MudChip>
+                }
+            </MudStack>
+        }
+        else
+        {
+            <MudText Typo="Typo.body2" Class="mud-text-secondary mt-2">No missed days.</MudText>
+        }
+    </MudPaper>
+}
+
+@code
+{
+    [Parameter, EditorRequired] public Streak? Value { get; set; }
+
+    [Parameter] public bool ShowMissedDates { get; set; } = true;
+    [Parameter] public int MaxMissedChips { get; set; } = 30;
+    [Parameter] public string? Class { get; set; }
+
+    private int CurrentStreak => Value?.CurrentStreak ?? 0;
+    private int LongestStreak => Value?.LongestStreak ?? 0;
+
+    private List<string> MissedDays => ParseMissedDays(Value?.MissedDays);
+    private int MissedDaysCount => MissedDays.Count;
+
+    private static List<string> ParseMissedDays(string? missedDaysCsv)
+        => string.IsNullOrWhiteSpace(missedDaysCsv)
+            ? new List<string>()
+            : missedDaysCsv.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+}

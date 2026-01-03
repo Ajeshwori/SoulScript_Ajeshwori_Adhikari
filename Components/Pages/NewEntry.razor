@@ -1,0 +1,97 @@
+﻿@page "/new-entry"
+
+@using MudBlazor
+@using Markdig
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.EntityFrameworkCore
+@using SoulScript.Components
+@using SoulScript.Data
+@using SoulScript.Model
+@using SoulScript.Services
+
+
+<!-- Date and Word Count Display -->
+<div class="d-flex justify-space-between align-center mb-4" style="padding: 12px 0;">
+    <div class="d-flex align-center" style="gap: 12px;">
+        <MudPaper Elevation="0"
+                  Class="d-flex align-center justify-center"
+                  Style="width: 48px; height: 48px; border-radius: 12px;
+                         background-color: color-mix(in srgb, var(--mud-palette-success) 20%, transparent);">
+            <MudIcon Icon="@Icons.Material.Filled.CalendarToday"
+                     Style="color: var(--mud-palette-success); font-size: 24px;" />
+        </MudPaper>
+
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight: 700; margin: 0; color: var(--mud-palette-text-primary);">
+                @CurrentDate.ToString("dddd")
+            </MudText>
+            <MudText Typo="Typo.body2" Style="margin: 0; color: var(--mud-palette-text-secondary);">
+                @CurrentDate.ToString("MMMM d, yyyy")
+            </MudText>
+        </div>
+    </div>
+
+    <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+        @WordCount words
+    </MudText>
+</div>
+
+
+<TitleSection Title="@EntryTitle"
+              TitleChanged="value => EntryTitle = value" />
+
+<EditToolbar OnCommandClicked="FormatText" />
+
+<MudPaper Class="pa-4 editor-card" Elevation="0">
+   <textarea id="editor"
+          class="editor-textarea"
+          placeholder="Start writing your content..."
+          @bind-value="EntryContent"
+          @bind-value:event="oninput"
+          @onkeydown="OnEditorKeyDown"></textarea>
+
+</MudPaper>
+
+<MudDivider Class="my-3" />
+
+<MudText Typo="Typo.subtitle2" Class="mud-text-secondary">Preview</MudText>
+
+<MudPaper Class="pa-4 preview-card" Elevation="0">
+    @((MarkupString)Markdown.ToHtml(EntryContent ?? string.Empty, _pipeline))
+</MudPaper>
+
+
+<MoodSection Moods="@Moods"
+             PrimaryFeeling="@PrimaryFeeling"
+             PrimaryFeelingChanged="value => PrimaryFeeling = value"
+             SecondaryFeelings="@SecondaryFeelings"
+             SecondaryFeelingsChanged="value => SecondaryFeelings = value" />
+
+<MudGrid Class="mt-4">
+    <MudItem xs="12" md="4">
+        <CategorySection Category="@Category"
+                         CategoryChanged="value => Category = value" />
+    </MudItem>
+    <MudItem xs="12" md="8">
+        <TagSection Tags="@Tags"
+                    TagsChanged="value => Tags = value"
+                    PredefinedTags="@PredefinedTags" />
+    </MudItem>
+</MudGrid>
+
+<MudStack Row="true" Class="mt-4" Justify="Justify.FlexEnd" Spacing="2">
+    <MudButton Variant="Variant.Outlined"
+               Color="Color.Default"
+               OnClick="Cancel">
+        Cancel
+    </MudButton>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               OnClick="SaveEntry"
+               StartIcon="@Icons.Material.Filled.Save">
+        Save
+    </MudButton>
+</MudStack>
+
+

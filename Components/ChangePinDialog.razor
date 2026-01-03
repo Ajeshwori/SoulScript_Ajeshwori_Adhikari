@@ -1,0 +1,60 @@
+@using MudBlazor
+@using SoulScript.Services
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Enter a new 4-digit PIN to secure your journal.
+        </MudText>
+
+        <div class="d-flex justify-center gap-3 mb-4">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div style="@($"width: 12px; height: 12px; border-radius: 50%; background-color: {(_pinInput.Length > i ? "var(--mud-palette-primary)" : "#e0e0e0")}; transition: background-color 0.2s;")"></div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+        }
+
+        <MudGrid Spacing="2" Justify="Justify.Center">
+            @for (int i = 1; i <= 9; i++)
+            {
+                var num = i;
+                <MudItem xs="4" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Text"
+                               OnClick="@(() => AppendPin(num.ToString()))"
+                               Style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        @num
+                    </MudButton>
+                </MudItem>
+            }
+
+            <MudItem xs="4" Class="d-flex justify-center">
+                <!-- empty -->
+            </MudItem>
+
+            <MudItem xs="4" Class="d-flex justify-center">
+                <MudButton Variant="Variant.Text"
+                           OnClick="@(() => AppendPin("0"))"
+                           Style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    0
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="4" Class="d-flex justify-center">
+                <MudButton Variant="Variant.Text"
+                           OnClick="Backspace"
+                           Style="width: 60px; height: 60px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Backspace" />
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+

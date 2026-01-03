@@ -1,0 +1,124 @@
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components.Web
+@inherits ComponentBase
+
+<MudPaper Class="tags-card pa-4" Elevation="0" Style=" border-radius: 12px; ">
+    <MudText Typo="Typo.subtitle1">Tags (Optional)</MudText>
+
+    <div class="tag-input-group mt-2">
+        <MudTextField @bind-Value="NewTag"
+                      Placeholder="Add custom tag (optional)..."
+                      Variant="Variant.Outlined"
+                      Class="tag-input flex-grow-1"
+                      OnKeyDown="OnTagKeyDown" />
+
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   Class="tag-add-btn"
+                   OnClick="AddTag">
+            +
+        </MudButton>
+    </div>
+
+    @if (Tags.Count > 0)
+    {
+        <MudChipSet T="string" Class="tags-list mt-2">
+            @foreach (var tag in Tags)
+            {
+                <MudChip T="string"
+                         Color="Color.Info"
+                         Variant="Variant.Outlined"
+                         OnClose="() => RemoveTag(tag)"
+                         Closable="true"
+                         CloseIcon="@Icons.Material.Filled.Close">
+                    @tag
+                </MudChip>
+            }
+        </MudChipSet>
+    }
+
+    @if (PredefinedTags.Count > 0)
+    {
+        <div class="predefined-tags-section mt-3">
+            <MudText Typo="Typo.caption" Class="predefined-tags-label">
+                Pre-built tags:
+            </MudText>
+
+            <MudTextField @bind-Value="SearchText"
+                          Placeholder="Search tags..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mt-1"
+                          Immediate="true" />
+
+            <MudChipSet T="string" Class="predefined-tags-list mt-2">
+                @foreach (var tag in FilteredPredefinedTags)
+                {
+                    var isSelected = Tags.Contains(tag, StringComparer.OrdinalIgnoreCase);
+
+                    <MudChip T="string"
+                             Variant="Variant.Outlined"
+                             Color="@(isSelected ? Color.Primary : Color.Default)"
+                             Disabled="isSelected"
+                             Class="predefined-tag-btn"
+                             OnClick="() => AddPredefinedTag(tag)">
+                        @(isSelected? tag : $"+ {tag}")
+                    </MudChip>
+                }
+            </MudChipSet>
+        </div>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public List<string> Tags { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> TagsChanged { get; set; }
+    [Parameter] public List<string> PredefinedTags { get; set; } = new();
+
+    private string NewTag { get; set; } = string.Empty;
+    private string SearchText { get; set; } = string.Empty;
+
+    private IEnumerable<string> FilteredPredefinedTags =>
+        string.IsNullOrWhiteSpace(SearchText)
+            ? PredefinedTags
+            : PredefinedTags.Where(t => t.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+    private async Task AddTag()
+    {
+        var trimmed = (NewTag ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(trimmed))
+            return;
+
+        if (!Tags.Contains(trimmed, StringComparer.OrdinalIgnoreCase))
+        {
+            Tags.Add(trimmed);
+            if (TagsChanged.HasDelegate)
+                await TagsChanged.InvokeAsync(Tags);
+        }
+
+        NewTag = string.Empty;
+    }
+
+    private void OnTagKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            _ = AddTag();
+    }
+
+    private async Task AddPredefinedTag(string tag)
+    {
+        if (!Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        {
+            Tags.Add(tag);
+            if (TagsChanged.HasDelegate)
+                await TagsChanged.InvokeAsync(Tags);
+        }
+    }
+
+    private async Task RemoveTag(string tag)
+    {
+        Tags.Remove(tag);
+        if (TagsChanged.HasDelegate)
+            await TagsChanged.InvokeAsync(Tags);
+    }
+}

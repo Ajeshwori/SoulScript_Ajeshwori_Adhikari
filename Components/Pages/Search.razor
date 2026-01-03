@@ -1,0 +1,187 @@
+﻿@page "/search"
+@using Microsoft.EntityFrameworkCore
+@using SoulScript.Data
+@using SoulScript.Model
+@using SoulScript.Services
+
+<div class="ss-search-page">
+    <MudText Typo="Typo.h4" Class="ss-title">Search</MudText>
+    <MudText Typo="Typo.body2" Class="ss-subtitle">Find entries by keyword, mood, tags, or date.</MudText>
+
+    <!-- Search bar -->
+    <div class="ss-block ss-searchbar">
+        <MudTextField Value="@_searchText"
+                      ValueChanged="@((string? v) => OnSearchTextChanged(v))"
+                      Placeholder="Search entries by title, content, or tags..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Clearable="true"
+                      FullWidth="true"
+                      Immediate="true" />
+    </div>
+
+    <!-- Filters grid -->
+    <div class="ss-grid">
+        <div class="ss-block ss-card ss-datecard">
+            <MudText Typo="Typo.subtitle2">Date Range</MudText>
+            <MudDateRangePicker DateRange="@_range"
+                                DateRangeChanged="@OnRangeChanged"
+                                Class="mt-2" />
+        </div>
+
+        <div class="ss-block ss-card ss-moodcard">
+            <MudText Typo="Typo.subtitle2">Filter by Mood</MudText>
+
+            <MudChipSet T="string"
+                        MultiSelection="true"
+                        CheckMark="true"
+                        SelectedValues="@_selectedMoods"
+                        SelectedValuesChanged="OnMoodsChanged"
+                        Class="mt-2">
+                @foreach (var mood in _allMoods)
+                {
+                    var isSelected = _selectedMoods.Contains(mood.MoodName);
+                    <MudChip T="string" 
+                            Value="@mood.MoodName"
+                            Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                            OnClick="@(() => ToggleMood(mood.MoodName))">
+                        @mood.MoodName
+                    </MudChip>
+                }
+            </MudChipSet>
+        </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="ss-block ss-card ss-tagscard mt-4">
+        <MudText Typo="Typo.subtitle2">Filter by Tags</MudText>
+
+        <MudChipSet T="string"
+                    MultiSelection="true"
+                    CheckMark="true"
+                    SelectedValues="@_selectedTags"
+                    SelectedValuesChanged="OnTagsChanged"
+                    Class="mt-2">
+            @foreach (var t in _allTags)
+            {
+                var isSelected = _selectedTags.Contains(t);
+                <MudChip T="string" 
+                        Value="@t"
+                        Variant="@(isSelected ? Variant.Filled : Variant.Outlined)"
+                        OnClick="@(() => ToggleTag(t))">
+                    @t
+                </MudChip>
+            }
+        </MudChipSet>
+    </div>
+
+    <!-- Buttons -->
+    <div class="ss-actions">
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Search"
+                   OnClick="HandleApplyFilters">
+            Apply Filters
+        </MudButton>
+
+        <MudButton Variant="Variant.Outlined"
+                   OnClick="HandleClearFilters">
+            Clear
+        </MudButton>
+    </div>
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Indeterminate="true" Class="my-2" />
+    }
+
+    <MudDivider Class="my-2" />
+
+    <!-- Results header -->
+    <div class="d-flex justify-space-between align-center mt-4 mb-2">
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            Showing @(_results?.Count ?? 0) of @(_totalEntries) entries
+        </MudText>
+
+        <MudLink OnClick="@(async _ => await ClearFilters())"
+                 Underline="Underline.Always"
+                 Color="Color.Default"
+                 Typo="Typo.caption">
+            Clear all filters
+        </MudLink>
+    </div>
+
+    <!-- Results -->
+    <div class="ss-results">
+        @if (_results is null)
+        {
+            <MudText Typo="Typo.body2">Run a search…</MudText>
+        }
+        else if (_results.Count == 0)
+        {
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-12">
+                <MudPaper Class="d-flex align-center justify-center pa-4 rounded-lg mb-4"
+                          Elevation="0"
+                          Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudIcon Icon="@Icons.Material.Filled.Search"
+                             Style="font-size: 3rem; color: var(--mud-palette-text-disabled);" />
+                </MudPaper>
+
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">No results found</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Try adjusting your search or filters to find what you're looking for.
+                </MudText>
+            </MudStack>
+        }
+        else
+        {
+            @foreach (var e in _results)
+            {
+                <MudPaper Class="pa-4 mb-4" Elevation="0" Style="border-radius: 12px;">
+                    <div class="d-flex justify-space-between align-start">
+                        <!-- Left: Mood Emojis -->
+                        <MudStack Row="true" Spacing="1" Class="mb-2">
+                            @foreach (var m in e.EntryMoods)
+                            {
+                                if (!string.IsNullOrEmpty(m.Mood.EmojiIcon))
+                                {
+                                    <MudText Typo="Typo.h5" Class="mr-1">@m.Mood.EmojiIcon</MudText>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Surface">
+                                        @m.Mood.MoodName
+                                    </MudChip>
+                                }
+                            }
+                        </MudStack>
+
+                        <!-- Right: Tags -->
+                        <MudStack Row="true" Spacing="1">
+                            @foreach (var tag in e.EntryTags.Select(et => et.Tag.TagName))
+                            {
+                                <MudChip T="string"
+                                         Variant="Variant.Filled"
+                                         Color="Color.Surface"
+                                         Size="Size.Small"
+                                         Class="ma-0">
+                                    @tag
+                                </MudChip>
+                            }
+                        </MudStack>
+                    </div>
+
+                    <MudText Typo="Typo.h6"
+                             Style="font-weight: 700; color: var(--mud-palette-text-primary);"
+                             Class="mb-1">
+                        @e.Title
+                    </MudText>
+
+                    <MudText Typo="Typo.body2" Class="mb-3" Style="color: var(--mud-palette-text-secondary);">
+                        @Preview(e.Content)
+                    </MudText>
+                </MudPaper>
+            }
+        }
+    </div>
+</div>

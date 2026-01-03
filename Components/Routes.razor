@@ -1,0 +1,35 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using SoulScript.Services
+@inject NavigationManager Nav
+@inject SecurityService Security
+
+@using BlazorNavContext = Microsoft.AspNetCore.Components.Routing.NavigationContext
+
+
+<Router AppAssembly="typeof(MauiProgram).Assembly" 
+        NotFoundPage="typeof(Pages.NotFound)"
+        OnNavigateAsync="@OnNavigateAsync">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+
+@code {
+    private bool _startupChecked;
+
+    private async Task OnNavigateAsync(Microsoft.AspNetCore.Components.Routing.NavigationContext ctx)
+    {
+        if (ctx.Path.Equals("lock-journal", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (!_startupChecked)
+        {
+            _startupChecked = true;
+            Security.Lock(); // require PIN every app start
+        }
+
+        if (!Security.IsAuthenticated)
+            Nav.NavigateTo("/lock-journal", replace: true);
+    }
+}

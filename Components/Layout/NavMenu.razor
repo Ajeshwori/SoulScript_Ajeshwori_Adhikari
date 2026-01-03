@@ -1,0 +1,95 @@
+﻿@using MudBlazor
+@using Microsoft.EntityFrameworkCore
+@using SoulScript.Data
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+@inject SoulScript.Services.SecurityService Security
+
+<MudNavMenu>
+    <div class="navmenu-root">
+        <div class="navmenu-top">
+
+            <!-- Streak card (compact) -->
+            <MudPaper Class="pa-4 mb-4 streak-compact"
+                      Elevation="0"
+                      Style="cursor:pointer;"
+                      OnClick="@(() => Nav.NavigateTo("/dashboard"))">
+
+                <MudStack Spacing="1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment"
+                                 Size="Size.Medium"
+                                 Color="Color.Warning" />
+                        <MudText Typo="Typo.h4" Style="font-weight:800; margin:0;">
+                            @_dayStreak
+                        </MudText>
+                        <MudText Typo="Typo.subtitle1" Class="mud-text-secondary">days</MudText>
+                    </MudStack>
+
+                    <MudDivider />
+
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                            Best: <span style="font-weight:700;">@_bestStreak</span>
+                        </MudText>
+
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">
+                            Missed:
+                            <span style="font-weight:700; color: var(--mud-palette-error);">
+                                @_missedDaysCount
+                            </span>
+                        </MudText>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/new-entry" Icon="@Icons.Material.Filled.EditNote">New Entry</MudNavLink>
+            <MudNavLink Href="/all-entries" Icon="@Icons.Material.Filled.List">All Entries</MudNavLink>
+            <MudNavLink Href="/calendar" Icon="@Icons.Material.Filled.CalendarMonth">Calendar</MudNavLink>
+            <MudNavLink Href="/search" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
+            <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+
+        </div>
+
+        <div class="navmenu-bottom">
+            <MudNavLink OnClick="OnToggleDarkMode"
+                        Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)">
+                @(_isDarkMode ? "Light Mode" : "Dark Mode")
+            </MudNavLink>
+
+            <MudNavLink OnClick="LockNow" Icon="@Icons.Material.Filled.Lock">Lock Journal</MudNavLink>
+        </div>
+    </div>
+</MudNavMenu>
+
+@code {
+    [Parameter] public bool _isDarkMode { get; set; }
+    [Parameter] public EventCallback ToggleDarkMode { get; set; }
+
+    private int _dayStreak;
+    private int _bestStreak;
+    private int _missedDaysCount;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var s = await Db.Streaks.AsNoTracking().FirstOrDefaultAsync(x => x.StreakID == 1);
+
+        _dayStreak = s?.CurrentStreak ?? 0;
+        _bestStreak = s?.LongestStreak ?? 0;
+
+        _missedDaysCount = string.IsNullOrWhiteSpace(s?.MissedDays)
+            ? 0
+            : s!.MissedDays!.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
+    }
+
+    private async Task OnToggleDarkMode()
+        => await ToggleDarkMode.InvokeAsync();
+
+    private void LockNow()
+    {
+        Security.Lock();
+        Nav.NavigateTo("/lock-journal", replace: true);
+    }
+}
