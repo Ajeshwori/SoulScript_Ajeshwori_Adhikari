@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="SoulScript.csproj">
-    <Deploy Solution="Debug|*" />
-  </Project>
-</Solution>
