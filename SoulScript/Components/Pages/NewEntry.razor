@@ -1,0 +1,95 @@
+﻿@page "/new-entry"
+@page "/markdown"
+@page "/editor"
+@inject IJSRuntime JS
+
+<MudText Typo="Typo.h4" Class="mb-4">📝 New Entry</MudText>
+
+<MudPaper Class="pa-4 mb-3" Elevation="2">
+    <MudTextField @bind-Value="EntryTitle" 
+                  Label="Title" 
+                  Variant="Variant.Outlined" 
+                  FullWidth="true"
+                  Placeholder="Enter title here..." />
+</MudPaper>
+
+<MudPaper Class="pa-2 mb-3" Elevation="1">
+    <MudButtonGroup Variant="Variant.Text" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.FormatBold" 
+                       OnClick="FormatBold" 
+                       Title="Bold" />
+        <MudIconButton Icon="@Icons.Material.Filled.FormatItalic" 
+                       OnClick="FormatItalic" 
+                       Title="Italic" />
+        <MudIconButton Icon="@Icons.Material.Filled.FormatUnderlined" 
+                       OnClick="FormatUnderline" 
+                       Title="Underline" />
+        <MudDivider Vertical="true" FlexItem="true" />
+        <MudButton OnClick="FormatH1">H1</MudButton>
+        <MudButton OnClick="FormatH2">H2</MudButton>
+    </MudButtonGroup>
+</MudPaper>
+
+
+
+
+
+<MudPaper Class="pa-4" Elevation="2">
+    <div id="editor" 
+         contenteditable="true" 
+         data-placeholder="Start writing your content..."
+         class="editor-with-placeholder" 
+         style="min-height: 300px; outline: none;">
+    </div>
+</MudPaper>
+
+<MudStack Row="true" Class="mt-4" Justify="Justify.FlexEnd">
+    <MudButton Variant="Variant.Outlined" 
+               Color="Color.Default"
+               OnClick="Cancel">
+        Cancel
+    </MudButton>
+    <MudButton Variant="Variant.Filled" 
+               Color="Color.Primary"
+               OnClick="SaveEntry"
+               StartIcon="@Icons.Material.Filled.Save">
+        Save
+    </MudButton>
+</MudStack>
+
+@code {
+    private string EntryTitle { get; set; } = string.Empty;
+    private string EntryContent { get; set; } = string.Empty;
+    
+    async Task FormatBold() => await FormatText("bold");
+    async Task FormatItalic() => await FormatText("italic");
+    async Task FormatUnderline() => await FormatText("underline");
+    async Task FormatH1() => await FormatText("h1");
+    async Task FormatH2() => await FormatText("h2");
+
+
+    
+    async Task FormatText(string command)
+    {
+        await JS.InvokeVoidAsync("editorFormat", command);
+    }
+    
+    async Task SaveEntry()
+    {
+        // Get content from editor
+        EntryContent = await JS.InvokeAsync<string>("getEditorContent");
+        
+        // TODO: Save to database or service
+        Console.WriteLine($"Title: {EntryTitle}");
+        Console.WriteLine($"Content: {EntryContent}");
+        
+        // Show success message or navigate away
+    }
+    
+    void Cancel()
+    {
+        // Navigate back or clear fields
+        EntryTitle = string.Empty;
+        EntryContent = string.Empty;
+    }
+}
