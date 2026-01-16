@@ -28,7 +28,9 @@
                Variant="DrawerVariant.Persistent"
                Elevation="1">
         <NavMenu _isDarkMode="Theme.IsDarkMode"
-                 ToggleDarkMode="ToggleDarkMode" />
+                 ToggleDarkMode="ToggleDarkMode"
+                  />
+
     </MudDrawer>
 
     <MudMainContent Class="main-content">
@@ -40,6 +42,8 @@
 {
     private bool _drawerOpen = true;
     private MudThemeProvider? _mudThemeProvider;
+ 
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,6 +90,8 @@
 
     private void DrawerToggle() => _drawerOpen = !_drawerOpen;
     private void ToggleDarkMode() => Theme.Toggle();
+
+
 
     private MudTheme MyCustomTheme = new()
     {

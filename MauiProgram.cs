@@ -38,6 +38,7 @@ namespace SoulScript
             builder.Services.AddScoped<EntryQueryService>();
             builder.Services.AddScoped<StreakService>();
             builder.Services.AddScoped<SecurityService>();
+           
 
 
 

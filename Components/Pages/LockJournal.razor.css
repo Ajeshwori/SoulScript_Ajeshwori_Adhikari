@@ -1,14 +1,58 @@
+.lock-container {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.pin-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    transition: all 0.2s;
+}
+
+.pin-dot-filled {
+    background-color: var(--mud-palette-primary);
+}
+
 .pin-btn {
     font-size: 1.5rem !important;
     font-weight: 500 !important;
     width: 64px;
     height: 64px;
     border-radius: 50% !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease !important;
 }
 
-.pin-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    .pin-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .pin-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+.backspace-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
 }
+
+    .backspace-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .backspace-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
 
 .gap-3 {
     gap: 12px;

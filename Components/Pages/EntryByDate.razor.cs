@@ -18,6 +18,7 @@ public partial class EntryByDate
     [Inject] public ISnackbar Snackbar { get; set; } = default!;
     [Inject] public IJSRuntime JS { get; set; } = default!;
     [Inject] public StreakService StreakService { get; set; } = default!;
+    [Inject] public IDialogService DialogService { get; set; } = default!;
 
     [Parameter] public string DateText { get; set; } = "";
 
@@ -25,6 +26,7 @@ public partial class EntryByDate
     private bool _invalidDate;
     private bool _isFuture;
     private bool _isCreating;
+    private bool _isEditing; // New: separation of edit/view states
 
     private DateTime _date;
     private JournalEntry? _entry;
@@ -41,9 +43,18 @@ public partial class EntryByDate
 
     private List<Mood> Moods = new();
 
-    // NEW: editor-set handshake (prevents timing issues)
     private bool _shouldSetEditor;
     private string _editorTextToSet = "";
+
+    // Helper to detect if content is likely Markdown (primitive check)
+    // If it starts with <p> or <div or <h, it's likely HTML. otherwise treat as markdown.
+   
+    private bool IsHtml(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return false;
+        var trimmed = content.Trim();
+        return trimmed.StartsWith("<") && trimmed.EndsWith(">");
+    }
 
     private readonly MarkdownPipeline _pipeline =
         new MarkdownPipelineBuilder().UseSoftlineBreakAsHardlineBreak().Build();
@@ -53,7 +64,6 @@ public partial class EntryByDate
         await LoadPageAsync();
     }
 
-    // NEW: run JS only after render (DOM exists)
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_shouldSetEditor)
@@ -66,13 +76,15 @@ public partial class EntryByDate
     private async Task LoadPageAsync()
     {
         _isLoading = true;
-
         _invalidDate = false;
         _isFuture = false;
         _isCreating = false;
+        
+        // Default to View Mode if entry exists
+        _isEditing = false;
+        
         _entry = null;
 
-        // Parse route param
         if (!DateTime.TryParse(DateText, out _date))
         {
             _invalidDate = true;
@@ -89,7 +101,6 @@ public partial class EntryByDate
             return;
         }
 
-        // Load moods once
         if (Moods.Count == 0)
         {
             Moods = await Db.Moods.AsNoTracking()
@@ -98,19 +109,11 @@ public partial class EntryByDate
                 .ToListAsync();
         }
 
-        // Replace default tags with top 5 from DB (optional)
+        // Tag loading logic ...
         if (PredefinedTags.Count == 5 && PredefinedTags.Contains("Work"))
         {
-            PredefinedTags = await Db.EntryTags.AsNoTracking()
-                .GroupBy(et => et.Tag.TagName)
-                .OrderByDescending(g => g.Count())
-                .Select(g => g.Key)
-                .Take(5)
-                .ToListAsync();
-        }
-        else if (PredefinedTags.Count == 0)
-        {
-            PredefinedTags = await Db.EntryTags.AsNoTracking()
+             // load top 5 using data
+             PredefinedTags = await Db.EntryTags.AsNoTracking()
                 .GroupBy(et => et.Tag.TagName)
                 .OrderByDescending(g => g.Count())
                 .Select(g => g.Key)
@@ -118,7 +121,6 @@ public partial class EntryByDate
                 .ToListAsync();
         }
 
-        // Load entry
         _entry = await Db.JournalEntries
             .Include(e => e.EntryTags).ThenInclude(et => et.Tag)
             .Include(e => e.EntryMoods).ThenInclude(em => em.Mood)
@@ -127,48 +129,73 @@ public partial class EntryByDate
 
         if (_entry is null)
         {
-            ResetEditorState();
-
-            // schedule editor clear AFTER render
-            _editorTextToSet = "";
-            _shouldSetEditor = true;
-
+            // If entry doesn't exist, we just show "No entry" state initially.
+            // User must click "New Entry" to start creating.
             _isLoading = false;
             return;
         }
 
-        // Fill UI state from entry
+        // Populate UI state
         EntryTitle = _entry.Title;
         EntryContent = _entry.Content;
         Category = _entry.Category?.CategoryName ?? "Personal";
-
         Tags = _entry.EntryTags.Select(t => t.Tag.TagName).ToList();
+        PrimaryFeeling = _entry.EntryMoods.FirstOrDefault(m => m.IsPrimary)?.Mood.MoodName ?? "";
+        SecondaryFeelings = _entry.EntryMoods.Where(m => !m.IsPrimary)
+                .Select(m => m.Mood.MoodName).Take(2).ToList();
 
-        PrimaryFeeling =
-            _entry.EntryMoods.FirstOrDefault(m => m.IsPrimary)?.Mood.MoodName ?? "";
-
-        SecondaryFeelings =
-            _entry.EntryMoods.Where(m => !m.IsPrimary)
-                .Select(m => m.Mood.MoodName)
-                .Take(2)
-                .ToList();
-
-        // schedule editor set AFTER render
-        _editorTextToSet = EntryContent ?? "";
-        _shouldSetEditor = true;
-
+        // Default: View Mode.
+        _isEditing = false;
         _isLoading = false;
     }
 
     private async Task CreateEntryForThisDay()
     {
         _isCreating = true;
+        
+        // Start in Edit Mode
+        _isEditing = true;
 
         ResetEditorState();
-
-        // schedule editor clear AFTER render
+        
+        // Prepare editor
         _editorTextToSet = "";
         _shouldSetEditor = true;
+    }
+
+    private async Task EnableEditMode()
+    {
+        _isEditing = true;
+        
+        // Migration logic:
+        // If stored content is Markdown, convert to HTML for the editor.
+        // If it's already HTML, use as is.
+        string contentForEditor = EntryContent;
+        
+        if (!IsHtml(contentForEditor) && !string.IsNullOrEmpty(contentForEditor))
+        {
+            contentForEditor = Markdown.ToHtml(contentForEditor, _pipeline);
+        }
+
+        _editorTextToSet = contentForEditor ?? "";
+        _shouldSetEditor = true;
+    }
+    
+    // Cancel editing implies going back to View Mode (re-read from DB or reset)
+    private async Task CancelEdit()
+    {
+        if (_isCreating)
+        {
+            // If we were creating a new one, cancel means back to "No entry"
+            _isCreating = false;
+            _entry = null;
+            _isEditing = false;
+        }
+        else
+        {
+            // Revert changes
+           await LoadPageAsync();
+        }
     }
 
     private void ResetEditorState()
@@ -187,29 +214,43 @@ public partial class EntryByDate
         EntryContent = await JS.InvokeAsync<string>("getEditorContent");
     }
 
-    private async Task OnEditorInput()
-        => EntryContent = await JS.InvokeAsync<string>("getEditorContent");
-
-    private async Task OnEditorKeyDown(KeyboardEventArgs e)
+    private async Task<bool> ConfirmAsync(string title, string message)
     {
-        if (e.Key == "Enter")
-            await JS.InvokeVoidAsync("continueListIfNeeded");
+        return await DialogService.ShowMessageBox(
+            title,
+            message,
+            yesText: "Yes",
+            cancelText: "Cancel"
+        ) ?? false;
     }
+
+    // Input/KeyDown no longer needed for textarea, handled by browser contenteditable + JS events if needed
+    // But we might want to capture input to update word count if we had one.
+    // For now we rely on Save to get content.
 
     private async Task SaveEntry()
     {
+        var actionText = _entry is null ? "save" : "update";
+
+        if (!await ConfirmAsync("Confirm", $"Do you want to {actionText} this entry?"))
+            return;
+
         if (string.IsNullOrWhiteSpace(PrimaryFeeling))
         {
             Snackbar.Add("Select a primary mood.", Severity.Error);
             return;
         }
 
+       
+
+        // Get HTML from editor
         EntryContent = await JS.InvokeAsync<string>("getEditorContent");
 
-        // NEW: guard to prevent accidental blank overwrite
-        if (_entry is not null && string.IsNullOrWhiteSpace(EntryContent))
+        if (string.IsNullOrWhiteSpace(EntryContent) && _entry != null)
         {
-            Snackbar.Add("Editor is empty (previous text may not have loaded). Reload and try again.", Severity.Error);
+            // Careful about wiping content
+            // If creating new, empty might be okay-ish but usually not.
+            Snackbar.Add("Content is empty. Not saving to avoid wiping your entry.", Severity.Warning);
             return;
         }
 
@@ -225,13 +266,16 @@ public partial class EntryByDate
         await StreakService.RecalculateAsync();
         Snackbar.Add("Saved successfully!", Severity.Success);
 
-        // Reload so state reflects DB
+        // After save, reload to switch to View Mode
         await LoadPageAsync();
     }
 
     private async Task DeleteEntry()
     {
         if (_entry is null) return;
+
+        if (!await ConfirmAsync("Delete entry", "Do you want to delete this entry?"))
+            return;
 
         _entry.IsDeleted = true;
         _entry.UpdatedAt = DateTime.Now;
@@ -242,4 +286,5 @@ public partial class EntryByDate
         Snackbar.Add("Entry deleted.", Severity.Success);
         Nav.NavigateTo("/calendar");
     }
+
 }

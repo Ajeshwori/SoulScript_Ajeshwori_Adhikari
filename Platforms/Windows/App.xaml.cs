@@ -17,6 +17,12 @@ namespace SoulScript.WinUI
         public App()
         {
             this.InitializeComponent();
+            this.UnhandledException += (sender, error) =>
+            {
+                System.Diagnostics.Debug.WriteLine($"Unhandled WinUI Exception: {error.Exception.Message}");
+                System.Diagnostics.Debug.WriteLine(error.Exception.StackTrace);
+                // Optionally log to file or show dialog if UI is still alive
+            };
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();

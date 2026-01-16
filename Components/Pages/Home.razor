@@ -1,289 +1,118 @@
 ﻿@page "/"
-@page "/dashboard"
-@using SoulScript.Model
 @using SoulScript.Data
+@using SoulScript.Model
 @using Microsoft.EntityFrameworkCore
-@using MudBlazor
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
 
-<div class="dashboard-container mb-16">
+<div class="home-container">
+    <!-- Centered Hero Section -->
+    <div class="hero-section text-center mb-12 mt-8">
+        <!-- Date -->
+        <MudText Typo="Typo.h5" Class="mb-4" Style="color: var(--mud-palette-text-secondary); font-weight: 500;">
+            @DateTime.Now.ToString("dddd, MMMM d, yyyy")
+        </MudText>
 
-    <!-- Header -->
-    <div class="mb-8">
-        <MudText Typo="Typo.h4" Style="font-weight: 700;">Welcome back</MudText>
-        <MudText Typo="Typo.body2" Class="mud-text-secondary">@DateTime.Today.ToString("dddd, MMMM dd")</MudText>
+        <!-- Greeting -->
+        <MudText Typo="Typo.h3" Style="font-weight: 700; color: var(--mud-palette-text-primary);" Class="mb-6">
+            @_greeting, <strong>@_username</strong>
+        </MudText>
+
+        <MudText Typo="Typo.h6" Style="color: var(--mud-palette-text-secondary); font-weight: 400; max-width: 600px; margin: 0 auto;" Class="mb-8">
+            Take a moment to reflect and capture your thoughts today.
+        </MudText>
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Edit"
+                   Class="py-3 px-8 elevation-4"
+                   Style="border-radius: 24px; font-weight: 600; font-size: 1.1rem;"
+                   OnClick="@(() => Nav.NavigateTo("/new-entry"))">
+            Start Writing
+        </MudButton>
     </div>
 
-    <!-- Stats Row -->
-    <MudGrid Spacing="3" Class="mb-8">
-
-        <!-- Current Streak -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
-                <div class="d-flex justify-space-between align-start">
-                    <div class="stat-icon-bg">
-                        <MudIcon Icon="@Icons.Material.Outlined.LocalFireDepartment" Class="stat-icon" />
+    <!-- Quick Access Cards -->
+    <div class="quick-access-section mb-16">
+        <MudGrid Spacing="4" Justify="Justify.Center">
+            <MudItem xs="12" sm="4" md="3">
+                <MudPaper Class="quick-card pa-6 text-center d-flex flex-column align-center elevation-4" 
+                          Style="border-radius: 16px; cursor: pointer; transition: transform 0.2s;"
+                          @onclick="@(() => Nav.NavigateTo("/dashboard"))">
+                    <div class="card-icon-wrapper mb-4 pa-3 rounded-circle" style="background-color: var(--mud-palette-surface);">
+                        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Large" Color="Color.Primary" />
                     </div>
-                </div>
-                <div class="mt-4">
-                    <MudText Typo="Typo.h4" Style="font-weight: 700;">@_currentStreak</MudText>
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Current Streak</MudText>
-                    <MudText Typo="Typo.caption" Class="mud-text-secondary">days in a row</MudText>
-                </div>
-            </MudPaper>
-        </MudItem>
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">Dashboard</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">View your stats</MudText>
+                </MudPaper>
+            </MudItem>
 
-        <!-- Longest Streak -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
-                <div class="d-flex justify-space-between align-start">
-                    <div class="stat-icon-bg">
-                        <MudIcon Icon="@Icons.Material.Outlined.EmojiEvents" Class="stat-icon" />
+            <MudItem xs="12" sm="4" md="3">
+                <MudPaper Class="quick-card pa-6 text-center d-flex flex-column align-center elevation-4" 
+                          Style="border-radius: 16px; cursor: pointer; transition: transform 0.2s;"
+                          @onclick="@(() => Nav.NavigateTo("/calendar"))">
+                    <div class="card-icon-wrapper mb-4 pa-3 rounded-circle" style="background-color: var(--mud-palette-surface);">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Large" Color="Color.Secondary" />
                     </div>
-                </div>
-                <div class="mt-4">
-                    <MudText Typo="Typo.h4" Style="font-weight: 700;">@_longestStreak</MudText>
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Longest Streak</MudText>
-                    <MudText Typo="Typo.caption" Class="mud-text-secondary">personal best</MudText>
-                </div>
-            </MudPaper>
-        </MudItem>
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">Calendar</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Browse by date</MudText>
+                </MudPaper>
+            </MudItem>
 
-        <!-- Total Entries -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
-                <div class="d-flex justify-space-between align-start">
-                    <div class="stat-icon-bg">
-                        <MudIcon Icon="@Icons.Material.Outlined.Article" Class="stat-icon" />
+            <MudItem xs="12" sm="4" md="3">
+                <MudPaper Class="quick-card pa-6 text-center d-flex flex-column align-center elevation-4" 
+                          Style="border-radius: 16px; cursor: pointer; transition: transform 0.2s;"
+                          @onclick="@(() => Nav.NavigateTo("/search"))">
+                    <div class="card-icon-wrapper mb-4 pa-3 rounded-circle" style="background-color: var(--mud-palette-surface);">
+                        <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Large" Color="Color.Tertiary" />
                     </div>
-                </div>
-                <div class="mt-4">
-                    <MudText Typo="Typo.h4" Style="font-weight: 700;">@_totalEntries</MudText>
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Total Entries</MudText>
-                    <MudText Typo="Typo.caption" Class="mud-text-secondary">journal entries</MudText>
-                </div>
-            </MudPaper>
-        </MudItem>
-
-        <!-- Total Words -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="pa-4 d-flex flex-column justify-space-between stat-card" Elevation="0">
-                <div class="d-flex justify-space-between align-start">
-                    <div class="stat-icon-bg">
-                        <MudIcon Icon="@Icons.Material.Outlined.MenuBook" Class="stat-icon" />
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <MudText Typo="Typo.h4" Style="font-weight: 700;">@_totalWords</MudText>
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Total Words</MudText>
-                    <MudText Typo="Typo.caption" Class="mud-text-secondary">written</MudText>
-                </div>
-            </MudPaper>
-        </MudItem>
-
-    </MudGrid>
-
-    <!-- Mid Row: Moods & Tags -->
-    <MudGrid Spacing="3" Class="mb-8">
-
-        <!-- Mood Patterns -->
-        <MudItem xs="12" md="6">
-            <MudPaper Class="pa-6 rounded-xl h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Class="mb-4 d-flex align-center gap-2" Style="font-weight: 600;">
-                    <MudIcon Icon="@Icons.Material.Outlined.ShowChart" Color="Color.Success" />
-                    Mood Patterns
-                </MudText>
-
-                @if (_moodStats.Any())
-                {
-                    <div class="mood-bar-container mb-4">
-                        @foreach (var ms in _moodStats)
-                        {
-                            <div class="mood-bar-segment"
-                                 style="width: @(ms.Percentage)%; background-color: @GetMoodColor(ms.Category);">
-                            </div>
-                        }
-                    </div>
-
-                    <MudGrid>
-                        @foreach (var ms in _moodStats.Take(4))
-                        {
-                            <MudItem xs="6">
-                                <div class="d-flex align-center justify-space-between">
-                                    <div class="d-flex align-center gap-2">
-                                        <div class="mood-dot" style="background-color: @GetMoodColor(ms.Category)"></div>
-                                        <MudText Typo="Typo.body2">@ms.Icon @ms.Name</MudText>
-                                    </div>
-                                    <MudText Typo="Typo.body2" Style="font-weight: 600;">@Math.Round(ms.Percentage)%</MudText>
-                                </div>
-                            </MudItem>
-                        }
-                    </MudGrid>
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Not enough data yet.</MudText>
-                }
-            </MudPaper>
-        </MudItem>
-
-        <!-- Popular Tags -->
-        <MudItem xs="12" md="6">
-            <MudPaper Class="pa-6 rounded-xl h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Class="mb-4 d-flex align-center gap-2" Style="font-weight: 600;">
-                    <MudIcon Icon="@Icons.Material.Outlined.LocalOffer" Color="Color.Default" />
-                    Popular Tags
-                </MudText>
-
-                @if (_popularTags.Any())
-                {
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach (var t in _popularTags)
-                        {
-                            <div class="py-1 px-3 rounded-lg d-flex align-center gap-1"
-                                 style="
-                                     background-color: color-mix(in srgb, var(--mud-palette-success) 30%, transparent);
-                                     color: var(--mud-palette-text-primary);
-                                 ">
-                                <span style="font-size: 0.875rem;">@t.Name</span>
-                                <span style="font-size: 0.75rem; opacity: 0.8;">(@t.Count)</span>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">No tags used yet.</MudText>
-                }
-            </MudPaper>
-        </MudItem>
-
-    </MudGrid>
-
-    <!-- Analytics charts -->
-    <MudGrid Spacing="3" Class="mb-8">
-
-        <!-- Tag breakdown -->
-        <MudItem xs="12" md="6">
-            <MudPaper Class="pa-6 rounded-xl h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Style="font-weight:600;">Tag breakdown</MudText>
-
-                @if (_tagSeries.Any() && _tagLabels.Length > 0)
-                {
-                    <MudChart ChartType="ChartType.Bar"
-                              ChartSeries="@_tagSeries"
-                              XAxisLabels="@_tagLabels"
-                              Width="100%"
-                              Height="260px" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">No tag data yet.</MudText>
-                }
-            </MudPaper>
-        </MudItem>
-
-        <!-- Word count trend -->
-        <MudItem xs="12" md="6">
-            <MudPaper Class="pa-6 rounded-xl h-100" Elevation="0">
-                <MudText Typo="Typo.h6" Style="font-weight:600;">Word count trend (7 days)</MudText>
-
-                @if (_wordTrendSeries.Any() && _wordTrendLabels.Length > 0)
-                {
-                    <MudChart ChartType="ChartType.Line"
-                              ChartSeries="@_wordTrendSeries"
-                              XAxisLabels="@_wordTrendLabels"
-                              Width="100%"
-                              Height="260px" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">No entries in last 7 days.</MudText>
-                }
-            </MudPaper>
-        </MudItem>
-
-    </MudGrid>
-
-    <!-- Recent Entries -->
-    <div class="d-flex justify-space-between align-center mb-4">
-        <MudText Typo="Typo.h6" Style="font-weight: 700;">Recent Entries</MudText>
-        <MudLink Href="/all-entries" Underline="Underline.None" Color="Color.Success" Typo="Typo.body2">View all →</MudLink>
-    </div>
-
-    @if (_recentEntries.Any())
-    {
-        <MudGrid Spacing="3">
-            @foreach (var e in _recentEntries)
-            {
-                <MudItem xs="12" md="4">
-                    <MudPaper Class="pa-5 d-flex flex-column h-100 entry-card"
-                              Elevation="0"
-                              Style="border-radius: 16px;"
-                              @onclick="@(() => Nav.NavigateTo($"/entry/{e.EntryDate:yyyy-MM-dd}"))">
-
-                        <div class="d-flex justify-space-between align-start mb-2">
-                            <div class="d-flex gap-1">
-                                @foreach (var m in e.EntryMoods.Take(3))
-                                {
-                                    <MudText Typo="Typo.h5">@(m.Mood.EmojiIcon ?? "🙂")</MudText>
-                                }
-                            </div>
-
-                            @if (e.Category != null)
-                            {
-                                <div class="px-2 py-0 rounded"
-                                     style="background-color: color-mix(in srgb, var(--mud-palette-surface) 70%, transparent); font-size: 0.75rem;">
-                                    @e.Category.CategoryName
-                                </div>
-                            }
-                        </div>
-
-                        <MudText Typo="Typo.subtitle1" Class="mb-2 entry-title" Style="font-weight: 700;">
-                            @(string.IsNullOrWhiteSpace(e.Title) ? "Untitled" : e.Title)
-                        </MudText>
-
-                        <MudText Typo="Typo.body2" Class="mb-auto entry-preview mud-text-secondary">
-                            @Preview(e.Content)
-                        </MudText>
-
-                        <div class="d-flex gap-4 mt-4 mud-text-secondary" style="font-size: 0.75rem;">
-                            <div class="d-flex align-center gap-1">
-                                <MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Small" style="font-size: 1rem;" />
-                                @e.EntryDate.ToString("MMM dd, yyyy")
-                            </div>
-                            <div class="d-flex align-center gap-1">
-                                <MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small" style="font-size: 1rem;" />
-                                @(e.WordCount) words
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-1 mt-2 flex-wrap">
-                            @foreach (var t in e.EntryTags.Take(3))
-                            {
-                                <div class="px-2 py-0 rounded mud-text-secondary"
-                                     style="background-color: color-mix(in srgb, var(--mud-palette-surface) 75%, transparent); font-size: 0.7rem;">
-                                    @t.Tag.TagName
-                                </div>
-                            }
-                        </div>
-
-                    </MudPaper>
-                </MudItem>
-            }
+                    <MudText Typo="Typo.h6" Style="font-weight: 700;">Search</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">Find entries</MudText>
+                </MudPaper>
+            </MudItem>
         </MudGrid>
+    </div>
+</div>
+
+<style>
+    .quick-card:hover {
+        transform: translateY(-4px);
     }
-    else
+</style>
+
+@code {
+    private string _greeting = "Hello";
+    private string _username = "Friend";
+
+    protected override async Task OnInitializedAsync()
     {
-        <MudPaper Class="pa-8 d-flex flex-column align-center justify-center rounded-xl dashed-border"
-                  Elevation="0"
-                  Style="background-color: transparent; border: 2px dashed var(--mud-palette-lines-default);">
-            <MudIcon Icon="@Icons.Material.Outlined.EditNote" Size="Size.Large" Color="Color.Default" Class="mb-2" />
-            <MudText Typo="Typo.h6">No entries yet</MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4"
-                       OnClick="@(() => Nav.NavigateTo("/new-entry"))">
-                Start Journaling
-            </MudButton>
-        </MudPaper>
+        try
+        {
+            SetGreeting();
+            await LoadUser();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Home initialization error: {ex.Message}");
+        }
     }
 
-</div>
+    private void SetGreeting()
+    {
+        var hour = DateTime.Now.Hour;
+        if (hour < 12) _greeting = "Good Morning";
+        else if (hour < 18) _greeting = "Good Afternoon";
+        else _greeting = "Good Evening";
+    }
+
+    private async Task LoadUser()
+    {
+        var user = await Db.Users.AsNoTracking().FirstOrDefaultAsync();
+        if (user != null && !string.IsNullOrWhiteSpace(user.Username))
+        {
+            _username = user.Username;
+        }
+    }
+}
+

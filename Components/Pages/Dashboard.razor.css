@@ -1,0 +1,114 @@
+﻿/* =====================================================
+   Utility spacing
+   ===================================================== */
+.rounded-xl {
+    border-radius: 20px;
+}
+
+.gap-1 {
+    gap: 4px;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+.gap-4 {
+    gap: 16px;
+}
+
+/* =====================================================
+   Stat cards (MudBlazor theme-aware)
+   ===================================================== */
+.stat-card {
+    border-radius: 20px;
+    background-color: var(--mud-palette-surface);
+    color: var(--mud-palette-text-primary);
+    box-shadow: var(--mud-elevation-1);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+    /* Hover effect (subtle, material-like) */
+    .stat-card:hover {
+        box-shadow: var(--mud-elevation-4);
+        transform: translateY(-2px);
+    }
+
+    /* Ensure text inside respects theme */
+    .stat-card .mud-typography {
+        color: inherit;
+    }
+
+/* =====================================================
+   Stat icon background
+   ===================================================== */
+.stat-icon-bg {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Theme-aware tint */
+    background-color: color-mix( in srgb, var(--mud-palette-success) 15%, transparent );
+    color: var(--mud-palette-success);
+}
+
+/* Fallback for older browsers */
+@supports not (background-color: color-mix(in srgb, black 10%, white)) {
+    .stat-icon-bg {
+        background-color: rgba(76, 175, 80, 0.15);
+    }
+}
+
+/* =====================================================
+   Mood bar
+   ===================================================== */
+.mood-bar-container {
+    display: flex;
+    height: 12px;
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    /* Theme-aware neutral background */
+    background-color: var(--mud-palette-surface-variant);
+}
+
+.mood-bar-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Small mood indicator dot */
+.mood-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   Entry cards
+   ===================================================== */
+.entry-card {
+    cursor: pointer;
+    border-radius: 16px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: var(--mud-elevation-1);
+}
+
+    /* Hover lift without jank */
+    .entry-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--mud-elevation-4);
+    }
+
+/* Entry preview text clamp */
+.entry-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    /* Future-friendly standard */
+    line-clamp: 2;
+}

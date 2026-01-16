@@ -8,7 +8,6 @@ using SoulScript.Data;
 using SoulScript.Model;
 using SoulScript.Services;
 
-
 namespace SoulScript.Components.Pages;
 
 public partial class NewEntry
@@ -18,10 +17,10 @@ public partial class NewEntry
     [Inject] public ApplicationDbContext Db { get; set; } = default!;
     [Inject] public JournalEntryService EntryService { get; set; } = default!;
 
+    [Inject] public NavigationManager Nav { get; set; } = default!; // Need this to redirect after save if desired, or to handle cancel
 
     private string EntryTitle { get; set; } = string.Empty;
     private string EntryContent { get; set; } = string.Empty;
-
 
     private bool _shouldLoadContent;
     private bool _isEditMode;
@@ -31,7 +30,6 @@ public partial class NewEntry
     private string Category = "Personal";
     private List<string> Tags = new();
 
-    // Full pre-built tags list
     private List<string> PredefinedTags = new()
     {
         "Work", "Career", "Studies", "Family", "Friends", "Relationships",
@@ -49,16 +47,22 @@ public partial class NewEntry
         new MarkdownPipelineBuilder()
             .UseSoftlineBreakAsHardlineBreak()
             .Build();
+    
+    // Helper checks if content is HTML
+    private bool IsHtml(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return false;
+        var trimmed = content.Trim();
+        return trimmed.StartsWith("<") && trimmed.EndsWith(">");
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        // Load moods/options
         Moods = await Db.Moods.AsNoTracking()
             .OrderBy(m => m.Category)
             .ThenBy(m => m.MoodName)
             .ToListAsync();
 
-        // Load existing entry for today -> switch to edit mode
         var existing = await EntryService.GetEntryByDateAsync(DateTime.Today);
 
         if (existing is not null)
@@ -69,17 +73,16 @@ public partial class NewEntry
             EntryTitle = existing.Title ?? "";
             EntryContent = existing.Content ?? "";
             Category = existing.Category?.CategoryName ?? "Personal";
-
             Tags = existing.EntryTags.Select(et => et.Tag.TagName).ToList();
+            PrimaryFeeling = existing.EntryMoods.FirstOrDefault(em => em.IsPrimary)?.Mood.MoodName ?? "";
+            SecondaryFeelings = existing.EntryMoods.Where(em => !em.IsPrimary)
+                    .Select(em => em.Mood.MoodName).Take(2).ToList();
 
-            PrimaryFeeling =
-                existing.EntryMoods.FirstOrDefault(em => em.IsPrimary)?.Mood.MoodName ?? "";
-
-            SecondaryFeelings =
-                existing.EntryMoods.Where(em => !em.IsPrimary)
-                    .Select(em => em.Mood.MoodName)
-                    .Take(2)
-                    .ToList();
+            // Migration logic: convert MD to HTML if needed
+            if (!IsHtml(EntryContent) && !string.IsNullOrEmpty(EntryContent))
+            {
+                EntryContent = Markdown.ToHtml(EntryContent, _pipeline);
+            }
 
             _shouldLoadContent = true;
         }
@@ -90,19 +93,8 @@ public partial class NewEntry
         }
     }
 
-private async Task OnEditorKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            // Let the browser insert the newline first, then continue list numbering/bullets.
-            await Task.Yield();
-            await JS.InvokeVoidAsync("continueListIfNeeded");
-        }
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // JS editor can only be set after first render (DOM exists)
         if (firstRender && _shouldLoadContent)
         {
             _shouldLoadContent = false;
@@ -116,26 +108,24 @@ private async Task OnEditorKeyDown(KeyboardEventArgs e)
         EntryContent = await JS.InvokeAsync<string>("getEditorContent");
     }
 
+    // Called on editor input event manually or we just pull on save
     private async Task OnEditorInput()
     {
+        // Optional: could auto-update word count here if we bind an event
         EntryContent = await JS.InvokeAsync<string>("getEditorContent");
-        StateHasChanged(); // Update word count
+        StateHasChanged();
     }
 
     private int WordCount
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(EntryContent))
-                return 0;
-            
-            return EntryContent
-                .Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries)
-                .Length;
+            if (string.IsNullOrWhiteSpace(EntryContent)) return 0;
+            // Strip HTML tags for word count
+            var text = System.Text.RegularExpressions.Regex.Replace(EntryContent, "<.*?>", " ");
+            return text.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
         }
     }
-
-  
 
     private async Task SaveEntry()
     {
@@ -156,20 +146,25 @@ private async Task OnEditorKeyDown(KeyboardEventArgs e)
             SecondaryFeelings);
 
         Snackbar.Add(_isEditMode ? "Changes saved." : "Entry created.", Severity.Success);
-        _isEditMode = true;
+        
+        // After saving on New Entry page, maybe redirect to the View page (EntryByDate)
+        // so user sees the nice read-only view?
+        // Or stay here. User didn't specify. Staying here but in "Edit Mode" is current behavior. 
+        // But since we want "View Mode" behavior, redirecting to the specific entry page might be better.
+        
+         Nav.NavigateTo($"/entry/{DateTime.Today:yyyy-MM-dd}");
     }
 
     private async Task Cancel()
     {
-        // Clears editor (if you prefer "Back" behavior, navigate instead)
+        // Just clear or reload
         EntryTitle = string.Empty;
         EntryContent = string.Empty;
-        Category = "Personal";
-        Tags.Clear();
-        PrimaryFeeling = string.Empty;
-        SecondaryFeelings.Clear();
-
+        
         await JS.InvokeVoidAsync("setEditorContent", "");
-        _isEditMode = false;
+        _isEditMode = false; 
+        
+        // Or navigate away
+        Nav.NavigateTo("/"); 
     }
 }

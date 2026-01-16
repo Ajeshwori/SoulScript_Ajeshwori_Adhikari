@@ -72,61 +72,84 @@
                   Style="@($"background-color: {bgs[cardIndex % bgs.Length]}; border-radius: 16px; cursor: pointer;")"
                   OnClick="@(() => Nav.NavigateTo($"/entry/{e.EntryDate:yyyy-MM-dd}"))">
                     
-                    <div class="d-flex justify-space-between align-start mb-2">
-                        <div class="d-flex gap-2">
-                             @foreach(var m in e.EntryMoods)
-                             {
-                                 <MudText Typo="Typo.h5">@(m.Mood.EmojiIcon ?? "🙂")</MudText>
-                             }
-                        </div>
-                        @if(e.Category != null)
-                        {
-                            <div class="px-2 py-1 rounded" style="background-color: rgba(255,255,255,0.6); font-size: 0.75rem; color: #555;">
-                                @e.Category.CategoryName
+                    <div>
+                        <div class="d-flex justify-space-between align-start mb-2">
+                            <div class="d-flex gap-2">
+                                 @foreach(var m in e.EntryMoods)
+                                 {
+                                     <MudText Typo="Typo.h5">@(m.Mood.EmojiIcon ?? "🙂")</MudText>
+                                 }
                             </div>
-                        }
+                            @if(e.Category != null)
+                            {
+                                <div class="px-2 py-1 rounded" style="background-color: rgba(255,255,255,0.6); font-size: 0.75rem; color: #555;">
+                                    @e.Category.CategoryName
+                                </div>
+                            }
+                        </div>
+
+                        <MudText Typo="Typo.h6" Class="mb-1" Style="font-weight: 700;">
+                            @(string.IsNullOrWhiteSpace(e.Title) ? "Untitled" : e.Title)
+                        </MudText>
+
+                        <MudText Typo="Typo.body2" Class="mb-3 entry-preview">
+                        @((MarkupString)(e.Content ?? ""))
+                    </MudText>
                     </div>
 
-                    <MudText Typo="Typo.h6" Class="mb-1" Style="font-weight: 700;">
-                        @(string.IsNullOrWhiteSpace(e.Title) ? "Untitled" : e.Title)
-                    </MudText>
+                    <div>
+                        <MudDivider Class="mb-3" Style="opacity: 0.1"/>
 
-                    <MudText Typo="Typo.body2" Class="mb-3 entry-preview">
-                        @Preview(e.Content)
-                    </MudText>
-
-                    <MudDivider Class="mb-3" Style="opacity: 0.1"/>
-
-                    <div class="d-flex justify-space-between align-center flex-wrap gap-2">
-                         <div class="d-flex gap-4" style="font-size: 0.8rem; opacity: 0.8;">
-                            <div class="d-flex align-center gap-1">
-                                <MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Small" />
-                                @e.EntryDate.ToString("MMM dd, yyyy")
-                            </div>
-                            <div class="d-flex align-center gap-1">
-                                <MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small"/>
-                                @(e.WordCount) words
-                            </div>
-                             <div class="d-flex align-center gap-1">
-                                <MudIcon Icon="@Icons.Material.Outlined.LocalOffer" Size="Size.Small"/>
-                                @(e.EntryTags.Count) tags
-                            </div>
-                         </div>
-                         
-                         <div class="d-flex gap-1">
-                             @foreach(var t in e.EntryTags.Take(3))
-                             {
-                                  <div class="px-2 py-0 rounded-lg" style="background-color: white; font-size: 0.75rem; color: #666; border: 1px solid rgba(0,0,0,0.05);">
-                                    @t.Tag.TagName
+                        <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3">
+                             <div class="d-flex gap-4" style="font-size: 0.8rem; opacity: 0.8;">
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Small" />
+                                    @e.EntryDate.ToString("MMM dd, yyyy")
                                 </div>
-                             }
-                             @if(e.EntryTags.Count > 3)
-                             {
-                                 <div class="px-2 py-0 rounded-lg" style="background-color: white; font-size: 0.75rem; color: #666; border: 1px solid rgba(0,0,0,0.05);">
-                                    +@(e.EntryTags.Count - 3)
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small"/>
+                                    @(e.WordCount) words
                                 </div>
-                             }
-                         </div>
+                             </div>
+                             
+                             <div class="d-flex gap-1">
+                                 @foreach(var t in e.EntryTags.Take(3))
+                                 {
+                                      <div class="px-2 py-0 rounded-lg" style="background-color: white; font-size: 0.75rem; color: #666; border: 1px solid rgba(0,0,0,0.05);">
+                                        @t.Tag.TagName
+                                    </div>
+                                 }
+                                 @if(e.EntryTags.Count > 3)
+                                 {
+                                     <div class="px-2 py-0 rounded-lg" style="background-color: white; font-size: 0.75rem; color: #666; border: 1px solid rgba(0,0,0,0.05);">
+                                        +@(e.EntryTags.Count - 3)
+                                    </div>
+                                 }
+                             </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 justify-end" @onclick:stopPropagation="true">
+                            <MudButton Variant="Variant.Outlined" 
+                                       Size="Size.Small" 
+                                       Color="Color.Primary"
+                                       OnClick="@(() => Nav.NavigateTo($"/entry/{e.EntryDate:yyyy-MM-dd}"))">
+                                View
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" 
+                                       Size="Size.Small" 
+                                       Color="Color.Primary"
+                                       OnClick="@(() => Nav.NavigateTo($"/entry/{e.EntryDate:yyyy-MM-dd}"))">
+                                Edit
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Size="Size.Small"
+                                       Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Delete"
+                                       OnClick="@(() => DeleteEntryFromList(e))">
+                                Delete
+                            </MudButton>
+                        </div>
                     </div>
 
                 </MudPaper>
@@ -141,17 +164,6 @@
     }
 </div>
 
-<style>
-    .gap-2 { gap: 8px; }
-    .gap-4 { gap: 16px; }
-    .entry-card { transition: transform 0.2s; }
-    .entry-card:hover { transform: translateY(-2px); }
-    .entry-preview {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-</style>
+
 
 

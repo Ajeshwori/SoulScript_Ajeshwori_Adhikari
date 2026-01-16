@@ -121,11 +121,11 @@ h1:focus {
     color: #333333 !important;
 }
 
-/* Editor text area styling */
-.editor-textarea {
+/* Editor content area styling (WYSIWYG) */
+.editor-content {
     min-height: 300px;
     width: 100%;
-    resize: vertical;
+    /* resize: vertical; - div doesn't support resize natively smoothly without overflow */
     background-color: #ffffff !important;
     color: #333333 !important;
     border: 1px solid #ccc;
@@ -133,9 +133,117 @@ h1:focus {
     padding: 12px;
     font-family: inherit;
     font-size: 1rem;
+    overflow-y: auto;
+    outline: none;
 }
 
-.editor-textarea:focus {
+.editor-content:focus {
     outline: 2px solid var(--mud-palette-primary);
     border-color: transparent;
+}
+
+/* View mode content styling */
+.view-content {
+    min-height: 200px;
+    width: 100%;
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Ensure headings and lists inside view/editor look good */
+.editor-content h1,
+.view-content h1 {
+    font-size: 2em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+}
+
+.editor-content h2,
+.view-content h2 {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+}
+
+.editor-content ul,
+.view-content ul {
+    padding-left: 20px;
+    list-style-type: disc;
+    margin-bottom: 1em;
+}
+
+.editor-content ol,
+.view-content ol {
+    padding-left: 20px;
+    list-style-type: decimal;
+    margin-bottom: 1em;
+}
+
+.editor-content p,
+.view-content p {
+    margin-bottom: 1em;
+}
+
+.editor-content a,
+.view-content a {
+    color: #1b6ec2;
+    text-decoration: underline;
+}
+
+/* Entry Card Preview Styles (Shared) */
+.entry-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    /* Ensure rich text doesn't break the small card layout */
+}
+
+/* Reset headings inside preview to be inline/small */
+.entry-preview h1,
+.entry-preview h2,
+.entry-preview h3,
+.entry-preview h4,
+.entry-preview h5,
+.entry-preview h6 {
+    font-size: 1rem !important;
+    font-weight: bold;
+    margin: 0 !important;
+    display: inline;
+}
+
+.entry-preview p {
+    margin: 0 !important;
+    display: inline;
+}
+
+.entry-preview ul,
+
+/* Dashboard specific styles */
+.dashboard-card {
+    background-color: var(--mud-palette-surface);
+    border-radius: 16px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon-bg {
+    background-color: color-mix(in srgb, var(--mud-palette-primary) 10%, transparent);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.stat-icon {
+    color: var(--mud-palette-primary);
+    font-size: 2rem;
 }

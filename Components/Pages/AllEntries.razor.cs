@@ -11,6 +11,9 @@ public partial class AllEntries
 {
     [Inject] public ApplicationDbContext Db { get; set; } = default!;
     [Inject] public NavigationManager Nav { get; set; } = default!;
+    [Inject] public IDialogService DialogService { get; set; } = default!;
+    [Inject] public ISnackbar Snackbar { get; set; } = default!;
+
 
     private bool _isLoading = true;
     private bool _showFilters = false;
@@ -28,6 +31,8 @@ public partial class AllEntries
     private int _currentPage = 1;
     private int _pageSize = 10;
     private int _totalPages = 1;
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,6 +86,28 @@ public partial class AllEntries
         _isLoading = false;
         StateHasChanged();
     }
+    private async Task DeleteEntryFromList(JournalEntry e)
+    {
+        bool? ok = await DialogService.ShowMessageBox(
+            "Delete entry",
+            $"Delete entry for {e.EntryDate:MMM dd, yyyy}? This can’t be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel"
+        );
+
+        if (ok != true) return;
+
+        var entry = await Db.JournalEntries.FirstOrDefaultAsync(x => x.JournalEntryId == e.JournalEntryId);
+        if (entry is null) return;
+
+        entry.IsDeleted = true;
+        entry.UpdatedAt = DateTime.Now;
+
+        await Db.SaveChangesAsync();
+        Snackbar.Add("Entry deleted.", Severity.Success);
+
+        await LoadData(); // refresh list + totals
+    }
 
     private async Task PageChanged(int page)
     {
@@ -101,11 +128,5 @@ public partial class AllEntries
         _filterMood = "All";
         _currentPage = 1;
         await LoadData();
-    }
-
-    private string Preview(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return "No content preview available.";
-        return text.Length > 150 ? text[..150] + "..." : text;
     }
 }

@@ -9,9 +9,9 @@
 @using SoulScript.Model
 @using SoulScript.Services
 
-
-<!-- Date and Word Count Display -->
+@* Header: date + word count *@
 <div class="d-flex justify-space-between align-center mb-4" style="padding: 12px 0;">
+    @* Left: calendar icon + formatted date *@
     <div class="d-flex align-center" style="gap: 12px;">
         <MudPaper Elevation="0"
                   Class="d-flex align-center justify-center"
@@ -31,54 +31,53 @@
         </div>
     </div>
 
+    @* Right: live word count *@
     <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
         @WordCount words
     </MudText>
 </div>
 
-
+@* Title input *@
 <TitleSection Title="@EntryTitle"
               TitleChanged="value => EntryTitle = value" />
 
+@* Editor toolbar (bold/italic/etc.) *@
 <EditToolbar OnCommandClicked="FormatText" />
 
+@* Main editor surface (contenteditable WYSIWYG div) *@
 <MudPaper Class="pa-4 editor-card" Elevation="0">
-   <textarea id="editor"
-          class="editor-textarea"
-          placeholder="Start writing your content..."
-          @bind-value="EntryContent"
-          @bind-value:event="oninput"
-          @onkeydown="OnEditorKeyDown"></textarea>
-
+    <div id="editor"
+         class="editor-content"
+         contenteditable="true"
+         @oninput="OnEditorInput"></div>
 </MudPaper>
 
 <MudDivider Class="my-3" />
 
-<MudText Typo="Typo.subtitle2" Class="mud-text-secondary">Preview</MudText>
-
-<MudPaper Class="pa-4 preview-card" Elevation="0">
-    @((MarkupString)Markdown.ToHtml(EntryContent ?? string.Empty, _pipeline))
-</MudPaper>
-
-
+@* Mood selection: 1 primary + up to 2 secondary *@
 <MoodSection Moods="@Moods"
              PrimaryFeeling="@PrimaryFeeling"
              PrimaryFeelingChanged="value => PrimaryFeeling = value"
              SecondaryFeelings="@SecondaryFeelings"
              SecondaryFeelingsChanged="value => SecondaryFeelings = value" />
 
+@* Meta sections: category + tags *@
 <MudGrid Class="mt-4">
     <MudItem xs="12" md="4">
+        @* Journal category picker *@
         <CategorySection Category="@Category"
                          CategoryChanged="value => Category = value" />
     </MudItem>
+
     <MudItem xs="12" md="8">
+        @* Tags: free input + predefined tags *@
         <TagSection Tags="@Tags"
                     TagsChanged="value => Tags = value"
                     PredefinedTags="@PredefinedTags" />
     </MudItem>
 </MudGrid>
 
+@* Actions *@
 <MudStack Row="true" Class="mt-4" Justify="Justify.FlexEnd" Spacing="2">
     <MudButton Variant="Variant.Outlined"
                Color="Color.Default"
@@ -93,5 +92,3 @@
         Save
     </MudButton>
 </MudStack>
-
-

@@ -45,57 +45,94 @@ else if (_entry is null && !_isCreating)
 }
 else
 {
-    <TitleSection Title="@EntryTitle" TitleChanged="v => EntryTitle = v" />
-    <EditToolbar OnCommandClicked="FormatText" />
+    @* VIEW MODE *@
+    @if (!_isEditing)
+    {
+         <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:bold;">@EntryTitle</MudText>
+         
+         <MudPaper Class="pa-4 view-content mb-4" Elevation="1">
+             @* Render HTML directly. If it was old Markdown, it should have been converted on save, 
+                or we can do a fallback runtime conversion if needed, but for now we assume content is HTML *@
+             @if (IsHtml(EntryContent))
+             {
+                 @((MarkupString)EntryContent)
+             }
+             else
+             {
+                 @* Fallback for legacy existing entries not yet edited *@
+                 @((MarkupString)Markdown.ToHtml(EntryContent ?? string.Empty, _pipeline))
+             }
+         </MudPaper>
 
-    <MudPaper Class="pa-4" Elevation="2">
-        <textarea id="editor"
-                  class="editor-textarea"
-                  @oninput="OnEditorInput"
-                  @onkeydown="OnEditorKeyDown"></textarea>
-    </MudPaper>
+         <MudDivider Class="my-3"/>
+         
+         @* Read-only metadata display *@
+         <MudChipSet T="string" ReadOnly="true" Class="mb-2">
+             <MudChip T="string" Color="Color.Primary" Variant="Variant.Text">@PrimaryFeeling</MudChip>
+             @foreach(var feel in SecondaryFeelings)
+             {
+                 <MudChip T="string" Variant="Variant.Outlined">@feel</MudChip>
+             }
+         </MudChipSet>
+         
+         <MudText Typo="Typo.subtitle2" Class="mud-text-secondary">@Category</MudText>
+         
+         <MudChipSet T="string" ReadOnly="true">
+             @foreach(var tag in Tags)
+             {
+                 <MudChip T="string" Size="Size.Small">@tag</MudChip>
+             }
+         </MudChipSet>
 
-    <MudDivider Class="my-3" />
-
-    <MudText Typo="Typo.subtitle2">Preview</MudText>
-    <MudPaper Class="pa-4" Elevation="1">
-        @((MarkupString)Markdown.ToHtml(EntryContent ?? string.Empty, _pipeline))
-    </MudPaper>
-
-    <MoodSection Moods="@Moods"
-                 PrimaryFeeling="@PrimaryFeeling"
-                 PrimaryFeelingChanged="v => PrimaryFeeling = v"
-                 SecondaryFeelings="@SecondaryFeelings"
-                 SecondaryFeelingsChanged="v => SecondaryFeelings = v" />
-
-    <MudGrid Class="mt-4">
-        <MudItem xs="12" md="4">
-            <CategorySection Category="@Category" CategoryChanged="v => Category = v" />
-        </MudItem>
-        <MudItem xs="12" md="8">
-            <TagSection Tags="@Tags" TagsChanged="v => Tags = v" PredefinedTags="@PredefinedTags" />
-        </MudItem>
-    </MudGrid>
-
-    <MudStack Row="true" Class="mt-4" Spacing="2" Justify="Justify.FlexEnd">
-        <MudButton Variant="Variant.Outlined" OnClick="@(() => Nav.NavigateTo("/calendar"))">
-            Back
-        </MudButton>
-
-        @if (_entry is not null)
-        {
-            <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="DeleteEntry">
-                Delete
+         <MudStack Row="true" Class="mt-4" Spacing="2" Justify="Justify.FlexEnd">
+            <MudButton Variant="Variant.Outlined" OnClick="@(() => Nav.NavigateTo("/calendar"))">Back</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="EnableEditMode" StartIcon="@Icons.Material.Filled.Edit">Edit</MudButton>
+         </MudStack>
+    }
+    else
+    {
+        @* EDIT MODE *@
+        <TitleSection Title="@EntryTitle" TitleChanged="v => EntryTitle = v" />
+        <EditToolbar OnCommandClicked="FormatText" />
+    
+        <MudPaper Class="pa-4" Elevation="2">
+            @* WYSIWYG Editor *@
+            <div id="editor" class="editor-content" contenteditable="true"></div>
+        </MudPaper>
+    
+        <MoodSection Moods="@Moods"
+                     PrimaryFeeling="@PrimaryFeeling"
+                     PrimaryFeelingChanged="v => PrimaryFeeling = v"
+                     SecondaryFeelings="@SecondaryFeelings"
+                     SecondaryFeelingsChanged="v => SecondaryFeelings = v" />
+    
+        <MudGrid Class="mt-4">
+            <MudItem xs="12" md="4">
+                <CategorySection Category="@Category" CategoryChanged="v => Category = v" />
+            </MudItem>
+            <MudItem xs="12" md="8">
+                <TagSection Tags="@Tags" TagsChanged="v => Tags = v" PredefinedTags="@PredefinedTags" />
+            </MudItem>
+        </MudGrid>
+    
+        <MudStack Row="true" Class="mt-4" Spacing="2" Justify="Justify.FlexEnd">
+            <MudButton Variant="Variant.Outlined" OnClick="CancelEdit">
+                Cancel
             </MudButton>
-        }
-
-        <MudButton Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   OnClick="SaveEntry"
-                   StartIcon="@Icons.Material.Filled.Save">
-            Save
-        </MudButton>
-    </MudStack>
+    
+            @if (_entry is not null && !_isCreating)
+            {
+                <MudButton Color="Color.Error" Variant="Variant.Outlined" OnClick="DeleteEntry">
+                    Delete
+                </MudButton>
+            }
+    
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       OnClick="SaveEntry"
+                       StartIcon="@Icons.Material.Filled.Save">
+                @(_isCreating ? "Save" : "Update")
+            </MudButton>
+        </MudStack>
+    }
 }
-
-

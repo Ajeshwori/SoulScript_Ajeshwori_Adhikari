@@ -5,6 +5,8 @@
 @inject NavigationManager Nav
 @inject SoulScript.Services.SecurityService Security
 
+
+
 <MudNavMenu>
     <div class="navmenu-root">
         <div class="navmenu-top">
@@ -55,18 +57,19 @@
 
         <div class="navmenu-bottom">
             <MudNavLink OnClick="OnToggleDarkMode"
-                        Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)">
-                @(_isDarkMode ? "Light Mode" : "Dark Mode")
+                        Icon="@(_isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
+                @(_isDarkMode ? "Dark Mode" : "Light Mode")
             </MudNavLink>
+
 
             <MudNavLink OnClick="LockNow" Icon="@Icons.Material.Filled.Lock">Lock Journal</MudNavLink>
         </div>
     </div>
 </MudNavMenu>
-
 @code {
     [Parameter] public bool _isDarkMode { get; set; }
     [Parameter] public EventCallback ToggleDarkMode { get; set; }
+    [Parameter] public DateRange? Range { get; set; }
 
     private int _dayStreak;
     private int _bestStreak;
@@ -79,9 +82,35 @@
         _dayStreak = s?.CurrentStreak ?? 0;
         _bestStreak = s?.LongestStreak ?? 0;
 
-        _missedDaysCount = string.IsNullOrWhiteSpace(s?.MissedDays)
-            ? 0
-            : s!.MissedDays!.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
+        // If no range provided, keep old behavior (global)
+        if (Range?.Start is null || Range?.End is null)
+        {
+            _missedDaysCount = string.IsNullOrWhiteSpace(s?.MissedDays)
+                ? 0
+                : s!.MissedDays!.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
+
+            return;
+        }
+
+        var start = Range.Start.Value.Date;
+        var end = Range.End.Value.Date;
+
+        if (end < start)
+        {
+            _missedDaysCount = 0;
+            return;
+        }
+
+        // Dates that have at least 1 entry
+        var entryDates = await Db.JournalEntries.AsNoTracking()
+            .Where(e => !e.IsDeleted && e.EntryDate.Date >= start && e.EntryDate.Date <= end)
+            .Select(e => e.EntryDate.Date)
+            .Distinct()
+            .ToListAsync();
+
+        int totalDays = (end - start).Days + 1;
+        _missedDaysCount = totalDays - entryDates.Count;
+        if (_missedDaysCount < 0) _missedDaysCount = 0;
     }
 
     private async Task OnToggleDarkMode()
@@ -92,4 +121,7 @@
         Security.Lock();
         Nav.NavigateTo("/lock-journal", replace: true);
     }
+
+   
+
 }

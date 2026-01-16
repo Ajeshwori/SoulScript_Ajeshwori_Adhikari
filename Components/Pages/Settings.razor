@@ -5,6 +5,34 @@
 
 <MudText Typo="Typo.h4" Class="mb-4">Settings</MudText>
 
+<!-- Profile -->
+<MudPaper Class="pa-4 mb-4" Elevation="1" Style="border-radius: 12px;">
+    <div class="d-flex align-center mb-3">
+        <MudIcon Icon="@Icons.Material.Filled.Person"
+                 Style="color: #66BB6A; font-size: 24px; margin-right: 12px;" />
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight: 600; margin: 0;">Profile</MudText>
+            <MudText Typo="Typo.caption" Style="color: #757575; margin: 0;">Manage your personal details.</MudText>
+        </div>
+    </div>
+
+    <MudDivider Class="my-3" />
+
+    <div class="d-flex align-end gap-3">
+        <MudTextField @bind-Value="_username"
+                      Label="Display Name"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Class="flex-grow-1" />
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Success"
+                   OnClick="UpdateProfile">
+            Save
+        </MudButton>
+    </div>
+</MudPaper>
+
 <!-- Appearance -->
 <MudPaper Class="pa-4 mb-4" Elevation="1" Style="border-radius: 12px;">
     <div class="d-flex align-center mb-3">
